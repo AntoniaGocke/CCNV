@@ -1,3 +1,7 @@
+#'Determines the array type of the user input dataframe
+#'
+#'@param dataFiles Dataframe with a column labelled "ArrayType" containing the arraytype (450K/EPIC/EPIC2) for each sample.
+#'@return A string with either "450K" (only 450K samples), "EPIC" (only EPIC samples), "combined" (both 450K and EPIC samples) and EPIC2 (only EPIC2)
 get.ArrayType <- function(dataFiles) {
     ArrayType <- NULL
     if ((all(c("EPIC", "450K") %in% types)) &
@@ -7,11 +11,22 @@ get.ArrayType <- function(dataFiles) {
         ArrayType <- "450K"
     } else if (("EPIC" %in% types) & (length(types) == 1)) {
         ArrayType <- "EPIC"
+    } else if (("EPIC2" %in% types) & (length(types) == 1)) {
+        ArrayType <- "EPIC2"
     }
     return(ArrayType)
 }
 
+#' Reads the specified methylation arrays into an RGSet. Note that any combination of 450K and EPIC arrays will be coerced into an RGSet of 450K type.
+#' @param dataFiles Dataframe with a column batch name as requested by minfi for reading in experiments.
+#' @param ArrayTye A string (either "450K", "EPIC", "combined" or "EPIC2")
+#'
+#' @return The RGSet
 read.RGSet <- function(dataFiles, ArrayType) {
+    stopifnot(
+        "Only 450K, EPIC and combined are permitted as ArrayType at the moment. EPIC2 is still missing" =
+            (ArrayType %in% c("450K", "EPIC", "combined"))
+    )
     types = unique(dataFiles$ArrayType)
     
     #read data transform to RGChannelSet
@@ -43,6 +58,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
     return(return_list)
 }
 
+#' TODO Antonia
 segment.Plot <-
     function(target_rgset,
              array_type,
@@ -54,10 +70,10 @@ segment.Plot <-
         
         if (segmentationMode == "single") {
             simple.Seg(mSetsAnno,
-                            array_type,
-                            thresh,
-                            colour.amplification,
-                            colour.loss)
+                       array_type,
+                       thresh,
+                       colour.amplification,
+                       colour.loss)
         } else if (segmentationMode == "multi") {
             multiSampleSeg(
                 mSetsAnno,
@@ -77,14 +93,24 @@ segment.Plot <-
                 detail.regions
             )
             simple.Seg(mSetsAnno,
-                            ArrayType,
-                            thresh,
-                            colour.amplification,
-                            colour.loss)
+                       ArrayType,
+                       thresh,
+                       colour.amplification,
+                       colour.loss)
             
         }
     }
 
+#' compute the cumulative CNV plots
+#' @param dataFiles A dataframe with columns ArrayType and Basename
+#' @param character specifying the segmentation mode. Allowed values are single/multi/all.
+#' @param thresh A positive float (>=0) indicating the threshold for an abberation.
+#' @param gamma A positive integer (>0) indicating the threshold for the multi-sample segmentation.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param detail.regions Either NULL or a vector of gene names.
+#'
+#' @return Nothing. Will print the figures to the default plotting terminal.
 cum.CNV <-
     function(dataFiles,
              segmentationMode = "all",
@@ -100,6 +126,7 @@ cum.CNV <-
         stopifnot(
             "ArrayType must be a column of input dataframe dataFiles" = ("ArrayType" %in% colnames(dataFiles))
         )
+        stopifnot("Parameter segmentationMode must be one of single/multi/all")
         stopifnot("Parameter thresh must be a float >=0" = (thresh >= 0) &&
                       (typeof(thresh) == "double"))
         stopifnot("Parameter gamma must be an integer >0" = (gamma > 0) &&
@@ -113,6 +140,12 @@ cum.CNV <-
         stopifnot(
             "Parameter colour.loss must be a string" = (detail.regions == NULL) &
                 (typeof(detail.regions) == "list")
+        )
+        stopifnot(
+            "Parameter detail.regions must either be NULL or a vector of strings" =
+                (
+                    is.null(detail.regions) | typeof(detail.regions) == "character"
+                )
         )
         
         # determine type of input files
