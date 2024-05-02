@@ -53,7 +53,7 @@ segment.Plot <-
         mSetsAnno <-  sampleBinContr(target_rgset, array_type)
         
         if (segmentationMode == "single") {
-            singleSampleSeg(mSetsAnno,
+            simple.Seg(mSetsAnno,
                             array_type,
                             thresh,
                             colour.amplification,
@@ -76,7 +76,7 @@ segment.Plot <-
                 colour.loss,
                 detail.regions
             )
-            singleSampleSeg(mSetsAnno,
+            simple.Seg(mSetsAnno,
                             ArrayType,
                             thresh,
                             colour.amplification,
