@@ -15,7 +15,6 @@ RoxygenNote: 7.3.1
 URL: https://github.com/AntoniaGocke/CCNV/
 Imports: 
     ggplot,
-    conumee2.0,
     GenVisR,
     minfi,
     minfiData,
@@ -25,4 +24,6 @@ Imports:
     tidyr,
     dplyr,
     plotly
+Remotes: 
+    hovestadtlab/conumee2[/conumee2]
     
