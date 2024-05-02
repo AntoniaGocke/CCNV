@@ -18,9 +18,9 @@ read.RGSet <- function(dataFiles, ArrayType) {
     if (ArrayType == "combined") {
         # separate file names
         data_EPIC <-
-            dataFiles[which(dataFiles$ArrayType == "EPIC"),]
+            dataFiles[which(dataFiles$ArrayType == "EPIC"), ]
         data_450k <-
-            dataFiles[which(dataFiles$ArrayType == "450k"),]
+            dataFiles[which(dataFiles$ArrayType == "450k"), ]
         # separately prepare 450k and 850k and then combine them
         rgset_EPIC <-
             read.metharray.exp(targets = data_EPIC, force = TRUE)
@@ -83,49 +83,50 @@ segment.Plot <-
                             colour.loss)
             
         }
+    }
+
+cum.CNV <-
+    function(dataFiles,
+             segmentationMode = "all",
+             thresh = 0.2,
+             gamma = 5,
+             colour.amplification = "red3",
+             colour.loss = "blue4",
+             detail.regions = NULL) {
+        # check user input
+        stopifnot("dataFiles must be a dataframe" = typeof(dataFiles) == "list")
+        stopifnot("Basename must be a column of input dataframe dataFiles" =
+                      ("Basename" %in% colnames(dataFiles)))
+        stopifnot(
+            "ArrayType must be a column of input dataframe dataFiles" = ("ArrayType" %in% colnames(dataFiles))
+        )
+        stopifnot("Parameter thresh must be a float >=0" = (thresh >= 0) &&
+                      (typeof(thresh) == "double"))
+        stopifnot("Parameter gamma must be an integer >0" = (gamma > 0) &&
+                      (typeof(gamma) == "double"))
+        stopifnot(
+            "Parameter colour.amplification must be a string" = typeof(colour.amplification) ==
+                "character"
+        )
+        stopifnot("Parameter colour.loss must be a string" = typeof(colour.loss) ==
+                      "character")
+        stopifnot(
+            "Parameter colour.loss must be a string" = (detail.regions == NULL) &
+                (typeof(detail.regions) == "list")
+        )
         
-        cum.CNV <-
-            function(dataFiles,
-                     segmentationMode = "all",
-                     thresh = 0.2,
-                     gamma = 5,
-                     colour.amplification = "red3",
-                     colour.loss = "blue4",
-                     detail.regions = NULL) {
-                # check user input
-                stopifnot("dataFiles must be a dataframe" = typeof(dataFiles) == "list")
-                stopifnot(
-                    "Basename must be a column of input dataframe dataFiles" =
-                        ("Basename" %in% colnames(dataFiles))
-                )
-                stopifnot(
-                    "ArrayType must be a column of input dataframe dataFiles" = ("ArrayType" %in% colnames(dataFiles))
-                )
-                stopifnot("Parameter thresh must be a float >=0" = (thresh >= 0) &&
-                              (typeof(thresh) == "double"))
-                stopifnot("Parameter gamma must be an integer >0" = (gamma > 0) &&
-                              (typeof(gamma) == "double"))
-                stopifnot(
-                    "Parameter colour.amplification must be a string" = typeof(colour.amplification) ==
-                        "character"
-                )
-                stopifnot("Parameter colour.loss must be a string" = typeof(colour.loss) ==
-                              "character")
-                stopifnot(
-                    "Parameter colour.loss must be a string" = (detail.regions == NULL) &
-                        (typeof(detail.regions) == "list")
-                )
-                
-                # determine type of input files
-                array_type <- get.ArrayType(dataFiles)
-                # read in RGSet
-                target_rgset <- read.RGSet(dataFiles, array_type)
-                # segment and plot
-                segment.Plot(target_rgset,
-                             array_type,
-                             thresh,
-                             colour.amplification,
-                             colour.loss,
-                             detail.regions)
-                
-            }
+        # determine type of input files
+        array_type <- get.ArrayType(dataFiles)
+        # read in RGSet
+        target_rgset <- read.RGSet(dataFiles, array_type)
+        # segment and plot
+        segment.Plot(
+            target_rgset,
+            array_type,
+            thresh,
+            colour.amplification,
+            colour.loss,
+            detail.regions
+        )
+        
+    }
