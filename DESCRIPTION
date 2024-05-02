@@ -2,8 +2,9 @@ Package: CCNV
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("Antonia", "Gocke", , "an.gocke@uke.de", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+    c(person("Antonia", "Gocke", , "an.gocke@uke.de", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID")), person("Yannis", "Schumann", , "schumany@hsu-hh.de", role = c("aut"),
+           comment = c(ORCID = "0000-0002-2379-200X")))
 Description: This package can read idats and infers the copy number data. It 
     then segments the data, either cumulatively or consecutively and can then 
     create cumulative copy number variation plots and the corresponding 
