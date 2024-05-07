@@ -13,7 +13,7 @@ suppressPackageStartupMessages(library(minfiDataEPIC))
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(IlluminaHumanMethylation450kanno.ilmn12.hg19))
 suppressPackageStartupMessages(library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19))
-suppressPackageStartupMessages(library(conumee))
+suppressPackageStartupMessages(library(conumee2.0))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggrepel))
 suppressPackageStartupMessages(library(tidyr))
@@ -30,7 +30,8 @@ options(scipen = 999)
 
 
 ```{r read data and check data}
-target_files <- read.csv("D:/Ependymoma/Ependymoma_methylation_mainCohort/sample_info_02_08_2022_850.csv", header=TRUE, sep=";")
+#for Mac
+target_files <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/sample_info_02_08_2022_850_Mac.csv", header=TRUE, sep=";")
 
 #
 g_files <- paste0(target_files$Basename, "_Grn.idat")
@@ -50,7 +51,7 @@ while (anyDuplicated(target_files$Basename) != "0") {
 }
 
 target_files <- target_files[which(target_files$Classifier_new_version_condensed == "EPN_SPINE_MYCN"),]
-detail_regions <- read.csv("D:/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
+#detail_regions <- read.csv("D:/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
 
 ```
 
@@ -297,11 +298,11 @@ multiPCFcompact <- function(nr,sum,gamma) {
 ```{r}
 sampleBinContr <- function(target_rgset, ArrayType) {
   #generate bins
-  anno_targets <- conumee::CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
+  anno_targets <- CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
   # Illumina normalisation
   target_mset <- preprocessIllumina(target_rgset)
   target_mset_mapped <- mapToGenome(target_mset)
-  target_mset_loaded <- conumee::CNV.load(target_mset)
+  target_mset_loaded <- CNV.load(target_mset)
 
   #load controls based on ArrayType
   if (ArrayType == "overlap" || ArrayType == "450k"){
@@ -310,7 +311,7 @@ sampleBinContr <- function(target_rgset, ArrayType) {
   if (ArrayType == "EPIC"){
     control_mset <- minfiDataEPIC::MsetEPIC
   }
-  control_mset_loaded <- conumee::CNV.load(control_mset)
+  control_mset_loaded <- CNV.load(control_mset)
   
   # find overlapping probes between arraydata and annotations
   anno_targets@probes <- subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
@@ -327,17 +328,8 @@ sampleBinContr <- function(target_rgset, ArrayType) {
 multiSampleSeg <- function(mSetsAnno, ArrayType, thresh, colour.amplification, colour.loss, detail.regions){
  
   #load and bin each sample in conumee
-  foreach(i=1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
-  {
-    if (i == 1) {
-      x <- CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
-      target_ratios <- cbind(x@anno@bins@ranges@NAMES, x@anno@bins@ranges@start, x@bin$ratio)
-    }
-   else {
-     x <- CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
-      target_ratios <- as.data.frame(cbind(target_ratios, x@bin$ratio))
-    }
-  }
+  x <- CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
+  target_ratios <- cbind(x@anno@bins@ranges@NAMES, x@anno@bins@ranges@start, as.data.frame(x@bin$ratio))
   names(target_ratios) <- c("Chrom", "Median.bp", names(mSetsAnno$target_mset_loaded@intensity))
 
   target_ratios$Chrom <- gsub("chr","",target_ratios$Chrom)
@@ -350,7 +342,18 @@ multiSampleSeg <- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
   seg_mpcf <- updatempcf(target_ratios, gamma = 5)
   
   cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, detail.regions)
+  cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
   
+  
+  #draw plots
+  print(cumCNV)
+  print(cumFreq)
+
+}
+```
+
+```{r}
+cumFreq <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh){
   chr_name <- mSetsAnno$anno_targets@genome$chr
   chr_size <- mSetsAnno$anno_targets@genome$size
   genome_chr <- cumsum(as.numeric(chr_size))
@@ -443,11 +446,6 @@ multiSampleSeg <- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
     scale_fill_manual(values = c("amplification" = colour.amplification,"deletion" = colour.loss), guide="none") +
     coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) +
     guides(x = guide_axis(n.dodge = 2))
-  
-  #draw plots
-  print(cumCNV)
-  print(cumFreq)
-
 }
 ```
 
@@ -587,29 +585,14 @@ CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colou
 }
 ```
 
-
-
 ```{r read and segment data}
 singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, colour.loss){
   
-  start.time <- Sys.time()
-  #load and bin each sample in conumee
-  foreach(i=1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
-  {
-    if (i == 1) {
-      x <- CNV.segment(CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
-      segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
-    }
-    else {
-      x <- CNV.segment(CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
-      target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
-      names(target_segmentation) <- names(segmentation_data)
-      segmentation_data <- rbind(segmentation_data, target_segmentation)
-    }
-  }
-  end.time <- Sys.time()
- time.taken <- end.time - start.time
- print(time.taken)
+  x <- CNV.segment(CNV.bin(CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+  conSegData <- bind_rows(x@seg$summary, .id = "column_label")
+
+  segmentation_data <- as.data.frame(cbind(conSegData$chrom, conSegData$loc.start, conSegData$loc.end, conSegData$seg.mean, conSegData$ID))
+  
   names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
   
   segmentation_data$chromosome <- gsub("chr","",segmentation_data$chromosome)
@@ -783,6 +766,7 @@ cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", t
 }
 
 p <- cum.CNV(target_files, ArrayType = "EPIC", segmentationMode = "multi")
+
 ```
 
 

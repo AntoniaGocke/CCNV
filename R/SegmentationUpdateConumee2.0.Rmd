@@ -363,10 +363,7 @@ x <- CNV.bin(CNV.fit(query = target_mset_loaded, ref = control_mset_loaded, anno
 #time.taken <- end.time - start.time
 #time.taken
 
-#load and bin each sample in conumee
-test <- as.data.frame(x@bin$ratio)
-
-target_ratios <- cbind(x@anno@bins@ranges@NAMES, x@anno@bins@ranges@start, test)
+target_ratios <- cbind(x@anno@bins@ranges@NAMES, x@anno@bins@ranges@start, as.data.frame(x@bin$ratio))
 
 names(target_ratios) <- c("Chrom", "Median.bp", names(target_mset_loaded@intensity))
 
@@ -429,6 +426,8 @@ foreach(i=1:length(segment_data$chr)) %do%
 
 final_seg_data <- as.data.frame(cbind(as.numeric(seg_start), as.numeric(segment_data$seg_val)))
 final_seg_data <-final_seg_data[order(final_seg_data$V1),]
+
+anno_EPIC <- getAnnotation(IlluminaHumanMethylationEPICanno.ilm10b4.hg19)
 
 #detail data
 gene_regions <- as.data.frame(cbind(anno_EPIC@listData$UCSC_RefGene_Name, anno_EPIC@rownames, anno_EPIC@listData$chr, anno_EPIC@listData$pos))
@@ -586,7 +585,7 @@ ggplot() +
 ################################################ single sample segmentation ################################################
 
 ```{r read and segment data}
-library(conumee)
+
 #generate bins
 anno_targets <- conumee::CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
 
@@ -607,26 +606,14 @@ control_mset_loaded <- conumee::CNV.load(control_mset)
 # find overlapping probes between EPIC arrays and annotations
 anno_targets@probes <- subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
 
-#start.time <- Sys.time()
 
-#load and bin each sample in conumee
-  foreach(i=1:ncol(target_mset_loaded@intensity)) %do%
-  {
-    if (i == 1) {
-      x <- CNV.segment(CNV.bin(CNV.fit(query = target_mset_loaded[names(target_mset_loaded[i])], ref = control_mset_loaded, anno_targets)))
-      segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
-    }
-    else {
-      x <- CNV.segment(CNV.bin(CNV.fit(query = target_mset_loaded[names(target_mset_loaded[i])], ref = control_mset_loaded, anno_targets)))
-      target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
-      names(target_segmentation) <- names(segmentation_data)
-      segmentation_data <- rbind(segmentation_data, target_segmentation)
-    }
-  }
+#load and bin each sample in conumee 2.0
+x <- CNV.segment(CNV.bin(CNV.fit(query = target_mset_loaded, ref = control_mset_loaded, anno_targets)))
+conSegData <- bind_rows(x@seg$summary, .id = "column_label")
 
+segmentation_data <- as.data.frame(cbind(conSegData$chrom, conSegData$loc.start, conSegData$loc.end, conSegData$seg.mean, conSegData$ID))
 #end.time <- Sys.time()
-#time.taken <- end.time - start.time
-#time.taken
+
 
 names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
 
