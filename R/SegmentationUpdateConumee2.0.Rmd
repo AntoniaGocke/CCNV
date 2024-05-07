@@ -587,12 +587,12 @@ ggplot() +
 ```{r read and segment data}
 
 #generate bins
-anno_targets <- conumee::CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
+anno_targets <- CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
 
 # Illumina normalisation
 target_mset <- preprocessIllumina(target_rgset)
 target_mset_mapped <- mapToGenome(target_mset)
-target_mset_loaded <- conumee::CNV.load(target_mset)
+target_mset_loaded <- CNV.load(target_mset)
 
 #load controls based on ArrayType
 if (ArrayType == "overlap" || ArrayType == "450k"){
@@ -601,7 +601,7 @@ if (ArrayType == "overlap" || ArrayType == "450k"){
 if (ArrayType == "EPIC"){
   control_mset <- minfiDataEPIC::MsetEPIC
 }
-control_mset_loaded <- conumee::CNV.load(control_mset)
+control_mset_loaded <- CNV.load(control_mset)
 
 # find overlapping probes between EPIC arrays and annotations
 anno_targets@probes <- subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))

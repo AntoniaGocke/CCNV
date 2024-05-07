@@ -603,6 +603,20 @@ singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
   segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
   segmentation_data2 <- as.data.frame(segmentation_data)
   
+  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss)
+  #singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
+  sumplot <- CNV.summaryplot(x, threshold = thresh)
+
+  #draw plots
+  print(overlayPlot)
+  #print(singleFreqPlot)
+  print(sumplot)
+}
+```
+
+```{r}
+singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh){
+  
   #genome data
   chr_name <- mSetsAnno$anno_targets@genome$chr
   chr_size <- mSetsAnno$anno_targets@genome$size
@@ -626,34 +640,10 @@ singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
   segmentation_data$start <- seg_start
   segmentation_data$end <- seg_end
   
-
   axis_break <- genome_centr
   axis_label <- c(1:22)
   
-  segcount <- c(1:length(segmentation_data$segmean))
-  segmentation_data$col <- "amplification"
-  for (i in segcount) {
-    if (segmentation_data$segmean[i] < 0)
-    {
-      segmentation_data$col[i] <- "deletion"
-    }
-  }
-  
-  overlayPlot <- ggplot() + 
-    geom_rect(data = segmentation_data,  aes(xmin = start, xmax = end, ymax = segmean, ymin = 0 , fill = col))  +
-    geom_vline(xintercept = genome_chr, colour = "grey") +
-    ylim(-2, 2) + 
-    geom_vline(xintercept = genome_centr, linetype="dotted", colour = "grey") +
-    geom_hline( yintercept = 0, colour ="darkgrey") +
-    scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
-    theme_classic(base_size = 15) +
-    guides(x = guide_axis(angle = 40)) +
-    scale_fill_discrete(guide="none") +
-    coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) +
-    guides(x = guide_axis(n.dodge = 2))+
-    scale_fill_manual(values = alpha(c("amplification" = colour.amplification,"deletion" = colour.loss), 1/sample_no), guide="none")
-
-  cnFreq_seg <- as.data.frame(cnFreq(segmentation_data2, CN_low_cutoff = -thresh,  CN_high_cutoff = thresh, out = "data"))
+  cnFreq_seg <- as.data.frame(cnFreq(segmentation_data, CN_low_cutoff = -thresh,  CN_high_cutoff = thresh, out = "data"))
   cnFreq_seg$data.chromosome <- gsub("chr", "", cnFreq_seg$data.chromosome)
   cnFreq_seg$data.chromosome <- as.numeric(cnFreq_seg$data.chromosome)
   
@@ -696,8 +686,7 @@ singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
   to_plot <- as.data.frame(rbind(gains_filtered_for_plot, loss_filtered_for_plot ))
   names(to_plot) <- c("start", "end", "count", "type")
   
-  b <- c(-1, -0.5, 0, 0.5, 1)
-  y_axis_break <-c(-sample_no,-(sample_no/2) + -(sample_no/4), -(sample_no/2), -(sample_no/4),0, sample_no/4, sample_no/2,(sample_no/2) + (sample_no/4), sample_no)
+  y_axis_break <-c(-1,-0.75, -0.5, -0.25, 0, 0.25, 0.5, 0.75, 1)
   y_axis_label <- c("100","75", "50","25", "0","25", "50","75", "100" )
   
   to_plot$start <- as.numeric(to_plot$start)
@@ -712,17 +701,71 @@ singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, c
     scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
     theme_classic(base_size = 12) + 
     guides(x = guide_axis(angle = 40)) +
-    scale_y_continuous(name = "Intensity", breaks = y_axis_break, labels = y_axis_label, limits = c(-sample_no, sample_no))+
+    scale_y_continuous(name = "Intensity", breaks = y_axis_break, labels = y_axis_label, limits = c(-1, 1))+
     scale_fill_discrete(guide="none") + 
     scale_fill_manual(values = c("gain" = colour.amplification,"loss" = colour.loss), guide="none") + 
     coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
     guides(x = guide_axis(n.dodge = 2))
-
-  #draw plots
-  print(overlayPlot)
-  print(singleFreqPlot)
 }
 ```
+
+
+```{r}
+overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colour.loss) {
+  
+  #genome data
+  chr_name <- mSetsAnno$anno_targets@genome$chr
+  chr_size <- mSetsAnno$anno_targets@genome$size
+  genome_chr <- cumsum(as.numeric(chr_size))
+  chr_centr <- mSetsAnno$anno_targets@genome$pq
+  
+  #just for getting pq - lines
+  addChr <- c(0,genome_chr)
+  addChr <- addChr[-length(addChr)]
+  genome_centr <- chr_centr + addChr
+  
+  #calculate position on genome
+  seg_start <- c()
+  seg_end <- c()
+  foreach(i=1:length(segmentation_data$chromosome)) %do%
+  {
+   seg_start[i] <- segmentation_data$start[i] + addChr[segmentation_data$chromosome[i]]
+    seg_end[i] <- segmentation_data$end[i] + addChr[segmentation_data$chromosome[i]] + 10000000
+  }
+  
+  segmentation_data$start <- seg_start
+  segmentation_data$end <- seg_end
+  sample_no <- as.numeric(length(unique(segmentation_data$sample)))
+
+  axis_break <- genome_centr
+  axis_label <- c(1:22)
+  
+  segcount <- c(1:length(segmentation_data$segmean))
+  segmentation_data$col <- "amplification"
+  for (i in segcount) {
+    if (segmentation_data$segmean[i] < 0)
+    {
+      segmentation_data$col[i] <- "deletion"
+    }
+  }
+  
+  overlayPlot <- ggplot() + 
+    geom_rect(data = segmentation_data,  aes(xmin = start, xmax = end, ymax = segmean, ymin = 0 , fill = col))  +
+    geom_vline(xintercept = genome_chr, colour = "grey") +
+    ylim(-2, 2) + 
+    geom_vline(xintercept = genome_centr, linetype="dotted", colour = "grey") +
+    geom_hline( yintercept = 0, colour ="darkgrey") +
+    scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
+    theme_classic(base_size = 15) +
+    guides(x = guide_axis(angle = 40)) +
+    scale_fill_discrete(guide="none") +
+    coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) +
+    guides(x = guide_axis(n.dodge = 2))+
+    scale_fill_manual(values = alpha(c("amplification" = colour.amplification,"deletion" = colour.loss), 1/sample_no), guide="none")
+  
+}
+```
+
 
 ```{r}
 cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", thresh = 0.2, colour.amplification = "red3", colour.loss = "blue4", detail.regions = NULL){
@@ -765,7 +808,7 @@ cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", t
   
 }
 
-p <- cum.CNV(target_files, ArrayType = "EPIC", segmentationMode = "multi")
+p <- cum.CNV(target_files, ArrayType = "EPIC", segmentationMode = "all")
 
 ```
 
