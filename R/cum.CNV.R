@@ -18,6 +18,19 @@ get.ArrayType <- function(dataFiles) {
     return(ArrayType)
 }
 
+#' Determines the conumee version from the array type
+#'
+#' @param ArrayType The ArrayType as returned by get.ArrayType
+#'
+#' @return The conumee version (either 1 or 2)
+get.ConumeeVersion <- function(ArrayType) {
+    v <- 1
+    if (ArrayType %in% c("EPIC2")) {
+        v <- 2
+    }
+    return(v)
+}
+
 #' Reads the specified methylation arrays into an RGSet. Note that any combination of 450K and EPIC arrays will be coerced into an RGSet of 450K type.
 #' @param dataFiles Dataframe with a column batch name as requested by minfi for reading in experiments.
 #' @param ArrayTye A string (either "450K", "EPIC", "combined" or "EPIC2")
@@ -34,24 +47,26 @@ read.RGSet <- function(dataFiles, ArrayType) {
     if (ArrayType == "combined") {
         # separate file names
         data_EPIC <-
-            dataFiles[which(dataFiles$ArrayType == "EPIC"), ]
+            dataFiles[which(dataFiles$ArrayType == "EPIC"),]
         data_450k <-
-            dataFiles[which(dataFiles$ArrayType == "450k"), ]
+            dataFiles[which(dataFiles$ArrayType == "450k"),]
         # separately prepare 450k and 850k and then combine them
         rgset_EPIC <-
             minfi::read.metharray.exp(targets = data_EPIC, force = TRUE)
         rgset_450k <-
-          minfi::read.metharray.exp(targets = data_450k, force = TRUE)
+            minfi::read.metharray.exp(targets = data_450k, force = TRUE)
         # combine into array with 450K cpg sites
         target_rgset <-
-          minfi::combineArrays(rgset_EPIC, rgset_450k, outType = "IlluminaHumanMethylation450k")
+            minfi::combineArrays(rgset_EPIC, rgset_450k, outType = "IlluminaHumanMethylation450k")
     }
     if (ArrayType == "450K") {
-        rgset_450k <- minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
+        rgset_450k <-
+            minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_450k
     }
     if (ArrayType == "EPIC") {
-        rgset_EPIC <- minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
+        rgset_EPIC <-
+            minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_EPIC
         
     }
@@ -67,6 +82,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' @param conumee.version The conumee version to use.
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
 segment.Plot <-
@@ -77,34 +93,46 @@ segment.Plot <-
              thresh,
              colour.amplification,
              colour.loss,
-             detail.regions) {
+             detail.regions,
+             conumee.version) {
         mSetsAnno <-  sampleBinContr(target_rgset, array_type)
         
         if (segmentationMode == "single") {
-            singleSampleSeg(mSetsAnno,
-                       thresh,
-                       colour.amplification,
-                       colour.loss)
+            if (conumee.version == 1) {
+                singleSampleSeg(mSetsAnno,
+                                thresh,
+                                colour.amplification,
+                                colour.loss)
+            } else{
+                singleSampleSeg2(mSetsAnno,
+                                 thresh,
+                                 colour.amplification,
+                                 colour.loss)
+            }
+            
         } else if (segmentationMode == "multi") {
-            multiSampleSeg(
-                mSetsAnno,
-                thresh,
-                colour.amplification,
-                colour.loss,
-                detail.regions
-            )
+            multiSampleSeg(mSetsAnno,
+                           thresh,
+                           colour.amplification,
+                           colour.loss,
+                           detail.regions)
         } else if (segmentationMode == "all") {
-            multiSampleSeg(
-                mSetsAnno,
-                thresh,
-                colour.amplification,
-                colour.loss,
-                detail.regions
-            )
-            singleSampleSeg(mSetsAnno,
-                       thresh,
-                       colour.amplification,
-                       colour.loss)
+            multiSampleSeg(mSetsAnno,
+                           thresh,
+                           colour.amplification,
+                           colour.loss,
+                           detail.regions)
+            if (conumee.version == 1) {
+                singleSampleSeg(mSetsAnno,
+                                thresh,
+                                colour.amplification,
+                                colour.loss)
+            } else{
+                singleSampleSeg2(mSetsAnno,
+                                 thresh,
+                                 colour.amplification,
+                                 colour.loss)
+            }
             
         }
     }
@@ -117,6 +145,7 @@ segment.Plot <-
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450K, EPIC and to 2 for Mouse and EPICv2
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
 #' @export
@@ -127,7 +156,8 @@ cum.CNV <-
              gamma = 5,
              colour.amplification = "red3",
              colour.loss = "blue4",
-             detail.regions = NULL) {
+             detail.regions = NULL,
+             conumee.version = NULL) {
         # check user input
         stopifnot("dataFiles must be a dataframe" = typeof(dataFiles) == "list")
         stopifnot("Basename must be a column of input dataframe dataFiles" =
@@ -135,7 +165,9 @@ cum.CNV <-
         stopifnot(
             "ArrayType must be a column of input dataframe dataFiles" = ("ArrayType" %in% colnames(dataFiles))
         )
-        stopifnot( "Parameter segmentationMode must be one of single/multi/all" = segmentationMode %in% c("multi", "all", "single"))
+        stopifnot(
+            "Parameter segmentationMode must be one of single/multi/all" = segmentationMode %in% c("multi", "all", "single")
+        )
         stopifnot("Parameter thresh must be a float >=0" = (thresh >= 0) &&
                       (typeof(thresh) == "double"))
         stopifnot("Parameter gamma must be an integer >0" = (gamma > 0) &&
@@ -156,9 +188,17 @@ cum.CNV <-
                     is.null(detail.regions) | typeof(detail.regions) == "character"
                 )
         )
+        stopifnot(
+            "Parameter conumee.version must either be NULL, 1 or 2" = (conumee.version %in% c(1, 2) ||
+                                                                           is.null(conumee.version))
+        )
         
         # determine type of input files
         array_type <- get.ArrayType(dataFiles)
+        # determine the conumee version (if not specified by the user)
+        if (is.null(conumee.version)) {
+            conumee.version <- get.ConumeeVersion(array_type)
+        }
         # read in RGSet
         target_rgset <- read.RGSet(dataFiles, array_type)
         
@@ -171,7 +211,8 @@ cum.CNV <-
             thresh,
             colour.amplification,
             colour.loss,
-            detail.regions
+            detail.regions,
+            conumee.version
         )
         
     }
