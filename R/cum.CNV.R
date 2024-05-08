@@ -4,6 +4,7 @@
 #'@return A string with either "450K" (only 450K samples), "EPIC" (only EPIC samples), "combined" (both 450K and EPIC samples) and EPIC2 (only EPIC2)
 get.ArrayType <- function(dataFiles) {
     ArrayType <- NULL
+    types = unique(dataFiles$ArrayType)
     if ((all(c("EPIC", "450K") %in% types)) &
         (length(types) == 2)) {
         ArrayType <- "combined"
@@ -38,24 +39,24 @@ read.RGSet <- function(dataFiles, ArrayType) {
             dataFiles[which(dataFiles$ArrayType == "450k"), ]
         # separately prepare 450k and 850k and then combine them
         rgset_EPIC <-
-            read.metharray.exp(targets = data_EPIC, force = TRUE)
+            minfi::read.metharray.exp(targets = data_EPIC, force = TRUE)
         rgset_450k <-
-            read.metharray.exp(targets = data_450k, force = TRUE)
+          minfi::read.metharray.exp(targets = data_450k, force = TRUE)
         # combine into array with 450K cpg sites
         target_rgset <-
-            combineArrays(rgset_EPIC, rgset_450k, outType = "IlluminaHumanMethylation450k")
+          minfi::combineArrays(rgset_EPIC, rgset_450k, outType = "IlluminaHumanMethylation450k")
     }
     if (ArrayType == "450K") {
-        rgset_450k <- read.metharray.exp(targets = dataFiles, force = TRUE)
+        rgset_450k <- minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_450k
     }
     if (ArrayType == "EPIC") {
-        rgset_EPIC <- read.metharray.exp(targets = dataFiles, force = TRUE)
+        rgset_EPIC <- minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_EPIC
         
     }
-    return_list = list("ArrayType" = ArrayType, "RGSet" = target_rgset)
-    return(return_list)
+    
+    return(target_rgset)
 }
 
 #' Segments and visualizes DNA methylation data and generative cumulative plots
@@ -71,6 +72,8 @@ read.RGSet <- function(dataFiles, ArrayType) {
 segment.Plot <-
     function(target_rgset,
              array_type,
+             segmentationMode,
+             gamma,
              thresh,
              colour.amplification,
              colour.loss,
@@ -79,14 +82,12 @@ segment.Plot <-
         
         if (segmentationMode == "single") {
             singleSampleSeg(mSetsAnno,
-                       array_type,
                        thresh,
                        colour.amplification,
                        colour.loss)
         } else if (segmentationMode == "multi") {
             multiSampleSeg(
                 mSetsAnno,
-                array_type,
                 thresh,
                 colour.amplification,
                 colour.loss,
@@ -95,14 +96,12 @@ segment.Plot <-
         } else if (segmentationMode == "all") {
             multiSampleSeg(
                 mSetsAnno,
-                array_type,
                 thresh,
                 colour.amplification,
                 colour.loss,
                 detail.regions
             )
             singleSampleSeg(mSetsAnno,
-                       ArrayType,
                        thresh,
                        colour.amplification,
                        colour.loss)
@@ -120,6 +119,7 @@ segment.Plot <-
 #' @param detail.regions Either NULL or a vector of gene names.
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
+#' @export
 cum.CNV <-
     function(dataFiles,
              segmentationMode = "all",
@@ -135,7 +135,7 @@ cum.CNV <-
         stopifnot(
             "ArrayType must be a column of input dataframe dataFiles" = ("ArrayType" %in% colnames(dataFiles))
         )
-        stopifnot("Parameter segmentationMode must be one of single/multi/all")
+        stopifnot( "Parameter segmentationMode must be one of single/multi/all" = segmentationMode %in% c("multi", "all", "single"))
         stopifnot("Parameter thresh must be a float >=0" = (thresh >= 0) &&
                       (typeof(thresh) == "double"))
         stopifnot("Parameter gamma must be an integer >0" = (gamma > 0) &&
@@ -161,6 +161,7 @@ cum.CNV <-
         array_type <- get.ArrayType(dataFiles)
         # read in RGSet
         target_rgset <- read.RGSet(dataFiles, array_type)
+        
         # segment and plot
         segment.Plot(
             target_rgset,

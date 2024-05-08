@@ -9,23 +9,24 @@
 #' the bins.
 sampleBinContr <- function(target_rgset, ArrayType) {
     #generate bins with some good default values
-    anno_targets <- CNV.create_anno(array_type = ArrayType)
+    anno_targets <- conumee2.0::CNV.create_anno(array_type = ArrayType)
     # Illumina normalisation
-    target_mset <- preprocessIllumina(target_rgset)
-    target_mset_loaded <- CNV.load(target_mset) # make CNV.data object
+    target_mset <- minfi::preprocessIllumina(target_rgset)
+    target_mset_mapped <- minfi::mapToGenome(target_mset)
+    target_mset_loaded <- conumee2.0::CNV.load(target_mset) # make CNV.data object
     
     #load controls based on ArrayType
     if (ArrayType == "overlap" || ArrayType == "450k") {
-        control_mset <- MsetEx
+        control_mset <- minfiData::MsetEx
     }
     if (ArrayType == "EPIC") {
-        control_mset <- MsetEPIC
+        control_mset <- minfiDataEPIC::MsetEPIC
     }
-    control_mset_loaded <- CNV.load(control_mset)
+    control_mset_loaded <- conumee2.0::CNV.load(control_mset)
     
     # find overlapping probes between arraydata and annotations
     anno_targets@probes <-
-        subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
+        IRanges::subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
     
     output <-
         list(
