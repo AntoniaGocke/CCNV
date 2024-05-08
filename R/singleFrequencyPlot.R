@@ -1,3 +1,12 @@
+#' Generates the single sample segmentation aberration frequency plot
+#' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
+#' @param segmentation_data a dataframe of the segmentation results of the single sample segmentation.
+#' @param target_ratios a dataframe of the intesity of all bins for each sample.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param thresh a float specifying the threshold when a segment is called as an aberration
+#'
+#' @return returns the frequency plot of the samples that were segmented together using the single sample segmentation algorithm
 singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh){
   
   #genome data

@@ -1,4 +1,12 @@
-singleSampleSeg2<- function(mSetsAnno, ArrayType, thresh, colour.amplification, colour.loss){
+#' Segments the data using the conumee 2.0 package and visualizes DNA methylation data and generative cumulative plots
+#' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
+#' @param thresh A positive float (>=0) indicating the threshold for an abberation.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param detail.regions Either NULL or a vector of gene names.
+#'
+#' @return Nothing. Will print the figures to the default plotting terminal.
+singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss, detail.regions){
   
   x <- conumee2.0::CNV.segment(conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
   conSegData <- bind_rows(x@seg$summary, .id = "column_label")

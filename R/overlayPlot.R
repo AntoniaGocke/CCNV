@@ -1,3 +1,10 @@
+#' Generates the single sample segmentation aberration frequency plot
+#' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
+#' @param segmentation_data a dataframe of the segmentation results of the single sample segmentation.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#'
+#' @return returns an overlay plot of all segmentations resulting from the single sample segmentation algorithm
 overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colour.loss) {
   
   #genome data
