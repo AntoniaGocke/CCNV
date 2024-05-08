@@ -9,15 +9,15 @@
 singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss, detail.regions){
   
   #load bin and segment each sample in conumee
-  foreach(1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
+  foreach(i=1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
     {
       if(i==1) {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
-        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
+        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
       }
       else {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
-        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
+        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
         names(target_segmentation) <- names(segmentation_data)
         segmentation_data <- rbind(segmentation_data, target_segmentation)
       }
