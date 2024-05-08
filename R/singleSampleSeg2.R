@@ -1,0 +1,26 @@
+singleSampleSeg2<- function(mSetsAnno, ArrayType, thresh, colour.amplification, colour.loss){
+  
+  x <- conumee2.0::CNV.segment(conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+  conSegData <- bind_rows(x@seg$summary, .id = "column_label")
+  
+  segmentation_data <- as.data.frame(cbind(conSegData$chrom, conSegData$loc.start, conSegData$loc.end, conSegData$seg.mean, conSegData$ID))
+  
+  names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
+  
+  segmentation_data$chromosome <- gsub("chr","",segmentation_data$chromosome)
+  segmentation_data$chromosome <- as.numeric(segmentation_data$chromosome)
+  sample_no <- as.numeric(length(unique(segmentation_data$sample)))
+  segmentation_data$start <- as.numeric(segmentation_data$start)
+  segmentation_data$end <- as.numeric(segmentation_data$end)
+  segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
+  segmentation_data2 <- as.data.frame(segmentation_data)
+  
+  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss)
+  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
+  sumplot <- CNV.summaryplot(x, threshold = thresh)
+  
+  #draw plots
+  print(overlayPlot)
+  print(singleFreqPlot)
+  print(sumplot)
+}
