@@ -14,8 +14,11 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 URL: https://github.com/AntoniaGocke/CCNV/
+biocViews:
+    CNV,
+    Processing
 Imports: 
-    ggplot,
+    ggplot2,
     GenVisR,
     minfi,
     minfiData,
@@ -27,5 +30,4 @@ Imports:
     plotly,
     conumee
 Remotes: 
-    hovestadtlab/conumee2[/conumee2]
-    
+    github::hovestadtlab/conumee2/conumee2
