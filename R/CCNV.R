@@ -1,3 +1,13 @@
+#' Generates the cumulative copy number plot
+#' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
+#' @param seg_mpcf a dataframe of the segmentation results of the multi sample segmentation.
+#' @param target_ratios a dataframe of the intesity of all bins for each sample.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param detail.regions Either NULL or a vector of gene names.
+#'
+#' @return returns the plot of the cumulative copy number variation plot
+
 CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, detail.regions){
   annotate = TRUE
   if(is.null(detail.regions)){

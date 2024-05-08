@@ -1,3 +1,13 @@
+#' Generates the cumulative copy number plot
+#' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
+#' @param seg_mpcf a dataframe of the segmentation results of the multi sample segmentation.
+#' @param target_ratios a dataframe of the intesity of all bins for each sample.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param thresh a float specifying the threshold when a segment is called as an aberration
+#'
+#' @return returns the plot of the cumulative copy number variation plot
+#' 
 cumFreq <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh){
   chr_name <- mSetsAnno$anno_targets@genome$chr
   chr_size <- mSetsAnno$anno_targets@genome$size

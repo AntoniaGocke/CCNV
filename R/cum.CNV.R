@@ -21,7 +21,7 @@ get.ArrayType <- function(dataFiles) {
 #' @param dataFiles Dataframe with a column batch name as requested by minfi for reading in experiments.
 #' @param ArrayTye A string (either "450K", "EPIC", "combined" or "EPIC2")
 #'
-#' @return The RGSet
+#' @return A list of the RGSet of the target data, the control data and the annotation data
 read.RGSet <- function(dataFiles, ArrayType) {
     stopifnot(
         "Only 450K, EPIC and combined are permitted as ArrayType at the moment. EPIC2 is still missing" =
@@ -58,7 +58,16 @@ read.RGSet <- function(dataFiles, ArrayType) {
     return(return_list)
 }
 
-#' TODO Antonia
+#' Segments and visualizes DNA methylation data and generative cumulative plots
+#' @param dataFiles A dataframe with columns ArrayType and Basename
+#' @param segmentationMode specifying the segmentation mode. Allowed values are single/multi/all.
+#' @param thresh A positive float (>=0) indicating the threshold for an abberation.
+#' @param gamma A positive integer (>0) indicating the threshold for the multi-sample segmentation.
+#' @param colour.amplification Colour for amplification
+#' @param colour.loss Colour for loss
+#' @param detail.regions Either NULL or a vector of gene names.
+#'
+#' @return Nothing. Will print the figures to the default plotting terminal.
 segment.Plot <-
     function(target_rgset,
              array_type,
@@ -103,7 +112,7 @@ segment.Plot <-
 
 #' compute the cumulative CNV plots
 #' @param dataFiles A dataframe with columns ArrayType and Basename
-#' @param character specifying the segmentation mode. Allowed values are single/multi/all.
+#' @param segmentationMode specifying the segmentation mode. Allowed values are single/multi/all.
 #' @param thresh A positive float (>=0) indicating the threshold for an abberation.
 #' @param gamma A positive integer (>0) indicating the threshold for the multi-sample segmentation.
 #' @param colour.amplification Colour for amplification
@@ -156,6 +165,8 @@ cum.CNV <-
         segment.Plot(
             target_rgset,
             array_type,
+            segmentationMode,
+            gamma,
             thresh,
             colour.amplification,
             colour.loss,
