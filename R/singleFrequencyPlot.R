@@ -23,7 +23,7 @@ singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplificati
   axis_break <- genome_centr
   axis_label <- c(1:22)
   
-  cnFreq_seg <- as.data.frame(cnFreq(segmentation_data, CN_low_cutoff = -thresh,  CN_high_cutoff = thresh, out = "data"))
+  cnFreq_seg <- as.data.frame(GenVisR::cnFreq(segmentation_data, CN_low_cutoff = -thresh,  CN_high_cutoff = thresh, out = "data"))
   cnFreq_seg$data.chromosome <- gsub("chr", "", cnFreq_seg$data.chromosome)
   cnFreq_seg$data.chromosome <- as.numeric(cnFreq_seg$data.chromosome)
   

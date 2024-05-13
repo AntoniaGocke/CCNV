@@ -832,7 +832,7 @@ cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", t
   
 }
 
-p <- cum.CNV(target_files, ArrayType = "EPIC", segmentationMode = "all")
+p <- cum.CNV(target_files, segmentationMode = "single")
 
 ```
 

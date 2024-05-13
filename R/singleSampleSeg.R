@@ -6,17 +6,17 @@
 #' @param detail.regions Either NULL or a vector of gene names.
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss, detail.regions){
+singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss){
   
   #load bin and segment each sample in conumee
   foreach(i=1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
     {
       if(i==1) {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, anno = mSetsAnno$anno_targets)))
         segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
       }
       else {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, anno = mSetsAnno$anno_targets)))
         target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
         names(target_segmentation) <- names(segmentation_data)
         segmentation_data <- rbind(segmentation_data, target_segmentation)

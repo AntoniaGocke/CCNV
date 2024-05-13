@@ -95,7 +95,13 @@ segment.Plot <-
              colour.loss,
              detail.regions,
              conumee.version) {
+      if(conumee.version == 1) {
+        require(conumee)
         mSetsAnno <-  sampleBinContr(target_rgset, array_type)
+      } else {
+        require(conumee2.0)
+        mSetsAnno <-  sampleBinContr(target_rgset, array_type)
+      }
         
         if (segmentationMode == "single") {
             if (conumee.version == 1) {
