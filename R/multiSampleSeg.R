@@ -6,7 +6,7 @@
 #' @param detail.regions Either NULL or a vector of gene names.
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-multiSampleSeg <- function(mSetsAnno, thresh, colour.amplification, colour.loss, detail.regions){
+multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions){
   
   #load and bin each sample in conumee
   x <- conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
@@ -21,8 +21,8 @@ multiSampleSeg <- function(mSetsAnno, thresh, colour.amplification, colour.loss,
   
   #################### Segmentation #################################
   seg_mpcf <- updatempcf(target_ratios, gamma = 5)
-  
-  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, detail.regions)
+  require(dplyr)
+  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions)
   cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
   
   

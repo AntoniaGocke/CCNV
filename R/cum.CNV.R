@@ -100,7 +100,7 @@ segment.Plot <-
         mSetsAnno <-  sampleBinContr(target_rgset, array_type)
       } else {
         require(conumee2.0)
-        mSetsAnno <-  sampleBinContr(target_rgset, array_type)
+        mSetsAnno <-  sampleBinContr2(target_rgset, array_type)
       }
         
         if (segmentationMode == "single") {
@@ -119,12 +119,14 @@ segment.Plot <-
         } else if (segmentationMode == "multi") {
             multiSampleSeg(mSetsAnno,
                            thresh,
+                           array_type,
                            colour.amplification,
                            colour.loss,
                            detail.regions)
         } else if (segmentationMode == "all") {
             multiSampleSeg(mSetsAnno,
                            thresh,
+                           array_type,
                            colour.amplification,
                            colour.loss,
                            detail.regions)

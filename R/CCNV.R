@@ -8,7 +8,7 @@
 #'
 #' @return returns the plot of the cumulative copy number variation plot
 
-CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, detail.regions){
+CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, ArrayType, colour.amplification, colour.loss, detail.regions){
   annotate = TRUE
   if(is.null(detail.regions)){
     annotate = FALSE
@@ -66,7 +66,7 @@ CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colou
   
   
   if (annotate == TRUE) {
-    if (ArrayType != "EPIC"){
+    if (ArrayType != "450k"){
       anno <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
     }
     if (ArrayType == "EPIC"){
@@ -89,36 +89,35 @@ CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colou
       cpg_pos[i] <- df_gene_regions$pos[i] + addChr[df_gene_regions$chr[i]]
     }
     df_gene_regions$pos <- as.numeric(cpg_pos)
-    genes <- as.data.frame(detail_regions$name)
-    
+    genes <- as.data.frame(detail.regions)
     
     final_bin_data <-  na.omit(final_bin_data)
     df_gene_regions$bin <- final_bin_data$bin_nr[findInterval(df_gene_regions$pos, final_bin_data$V1)]
     df_gene_regions <- as.data.frame(na.omit(as.matrix(df_gene_regions)))
-    df_gene_regions <- separate(df_gene_regions, genes, into = c("genes1", "genes2"), sep = " (?=[^ ]+$)")
+    df_gene_regions <- tidyr::separate(df_gene_regions, genes, into = c("genes1", "genes2"), sep = " (?=[^ ]+$)")
     
     #put together the genes and the corresponding bin data
-    geneBins <- left_join(genes, df_gene_regions ,join_by("detail_regions$name" == "genes1"))
+    geneBins <- as.data.frame(dplyr::left_join(genes, df_gene_regions, by = dplyr::join_by("detail.regions" == "genes1")))
     
     #remove duplicates and only keep the bin with the highest number of CpG sites present
-    geneBins <- geneBins %>% group_by(geneBins$`detail_regions$name`) %>% dplyr::count(geneBins$`detail_regions$name`, geneBins$bin)
+    geneBins <- geneBins %>% dplyr::group_by(geneBins$bins) %>% dplyr::count(geneBins$detail.regions, geneBins$bin)
     colnames(geneBins) <- c("genes", "bins", "n")
     geneBins <- geneBins[order(geneBins$n, decreasing  = TRUE),]
     geneBins <- na.omit(geneBins[-which(duplicated(geneBins$genes)),])
     
-    geneBins <- left_join(geneBins, final_bin_data, join_by("bins" == "bin_nr"))
+    geneBins <- dplyr::left_join(geneBins, final_bin_data, by= dplyr::join_by("bins" == "bin_nr"))
     geneBins <- geneBins[!((abs(geneBins$V2)) <0.15),]
     
-    cumCNV <- ggplot() +
+    cumCNV <- ggplot2::ggplot() +
       geom_point(final_bin_data, mapping = aes(x=V1, y=V2, colour=V2))+ 
-      ylim(-2, 2) + 
+      ylim(-2.5, 2.5) + 
       scale_color_gradient2(low = colour.loss ,  mid = "white",  high = colour.amplification,  midpoint = 0, breaks = b, guide = "colourbar" , space = "Lab", name = "Intensity") + 
       geom_vline(xintercept = genome_chr, colour = "grey") + 
       geom_vline(xintercept = genome_centr,linetype="dotted", colour = "grey")  + 
       geom_path(data = final_seg_data, aes(x = V1, y = V2)) + 
       labs( y = "Intensity") + 
-      geom_point(data = geneBins, aes(x = geneBins$V1, y = geneBins$V2)) + 
-      geom_label_repel(data = geneBins, aes(x = geneBins$V1, y = geneBins$V2), label = geneBins$genes, label.size = 0.2, nudge_x = 0.1, nudge_y = 0.1,) + 
+      geom_point(data = geneBins, aes(x = V1, y = V2)) + 
+      ggrepel::geom_label_repel(data = geneBins, aes(x = V1, y = V2), label = geneBins$genes, label.size = 0.2, nudge_x = 0.1, nudge_y = 0.1,) + 
       scale_x_continuous(limits = c(10001, 2881033286), name = "Chromosome", breaks = axis_break, labels = axis_label ) +
       theme_classic(base_size = 15) + 
       coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 

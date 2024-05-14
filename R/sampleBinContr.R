@@ -9,7 +9,7 @@
 #' the bins.
 sampleBinContr <- function(target_rgset, ArrayType) {
     #generate bins with some good default values
-    anno_targets <- conumee2.0::CNV.create_anno(array_type = ArrayType)
+    anno_targets <- conumee::CNV.create_anno(array_type = ArrayType)
     # Illumina normalisation
     target_mset <- minfi::preprocessIllumina(target_rgset)
     #target_mset_mapped <- minfi::mapToGenome(target_mset)

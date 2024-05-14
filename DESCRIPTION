@@ -28,6 +28,8 @@ Imports:
     tidyr,
     dplyr,
     plotly,
-    conumee
+    conumee,
+    IlluminaHumanMethylation450kanno.ilmn12.hg19,
+    IlluminaHumanMethylationEPICanno.ilm10b4.hg19
 Remotes: 
     github::hovestadtlab/conumee2/conumee2

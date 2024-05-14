@@ -51,8 +51,8 @@ while (anyDuplicated(target_files$Basename) != "0") {
 }
 
 target_files <- target_files[which(target_files$Classifier_new_version_condensed == "EPN_SPINE_MYCN"),]
-#detail_regions <- read.csv("D:/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
-
+details <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
+detail_regions <- details$name
 ```
 
 ```{r}
