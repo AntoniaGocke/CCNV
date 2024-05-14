@@ -74,17 +74,17 @@ singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplificati
   to_plot$end <- to_plot$end + 5000000
   to_plot$count <- as.numeric(to_plot$count)
   
-  singleFreqPlot <- ggplot() + geom_rect(data = to_plot,  aes(xmin = start, xmax = end, ymax = count, ymin = 0 , fill = type))  +
-    geom_vline(xintercept = genome_chr, colour = "grey") + 
-    geom_vline(xintercept = genome_centr, linetype="dotted", colour = "grey") + 
-    geom_hline(yintercept = 0, colour ="darkgrey") + 
-    scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
-    theme_classic(base_size = 12) + 
-    guides(x = guide_axis(angle = 40)) +
-    scale_y_continuous(name = "Intensity", breaks = y_axis_break, labels = y_axis_label, limits = c(-1, 1))+
-    scale_fill_discrete(guide="none") + 
-    scale_fill_manual(values = c("gain" = colour.amplification,"loss" = colour.loss), guide="none") + 
-    coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
-    guides(x = guide_axis(n.dodge = 2))
+  singleFreqPlot <- ggplot2::ggplot() + geom_rect(data = to_plot,  aes(xmin = start, xmax = end, ymax = count, ymin = 0 , fill = type))  +
+    ggplot2::geom_vline(xintercept = genome_chr, colour = "grey") + 
+    ggplot2::geom_vline(xintercept = genome_centr, linetype="dotted", colour = "grey") + 
+    ggplot2::geom_hline(yintercept = 0, colour ="darkgrey") + 
+    ggplot2::scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
+    ggplot2::theme_classic(base_size = 12) + 
+    ggplot2::guides(x = guide_axis(angle = 40)) +
+    ggplot2::scale_y_continuous(name = "Intensity", breaks = y_axis_break, labels = y_axis_label, limits = c(-1, 1))+
+    ggplot2::scale_fill_discrete(guide="none") + 
+    ggplot2::scale_fill_manual(values = c("gain" = colour.amplification,"loss" = colour.loss), guide="none") + 
+    ggplot2::coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
+    ggplot2::guides(x = guide_axis(n.dodge = 2))
   return(singleFreqPlot)
 }

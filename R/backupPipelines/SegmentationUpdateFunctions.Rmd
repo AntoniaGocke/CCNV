@@ -298,7 +298,7 @@ multiPCFcompact <- function(nr,sum,gamma) {
 ```{r}
 sampleBinContr <- function(target_rgset, ArrayType) {
   #generate bins
-  anno_targets <- CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = ArrayType)
+  anno_targets <- CNV.create_anno(bin_minprobes = 15, bin_minsize = 50000, bin_maxsize = 5000000, array_type = "EPIC")
   # Illumina normalisation
   target_mset <- preprocessIllumina(target_rgset)
   target_mset_mapped <- mapToGenome(target_mset)
@@ -812,7 +812,7 @@ cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", t
   
   }
   if (ArrayType == "EPIC") {
-    rgset_EPIC <- read.metharray.exp(targets = target_files, force = TRUE)
+    rgset_EPIC <- minfi::read.metharray.exp(targets = target_files, force = TRUE)
   
     target_rgset <- rgset_EPIC
   }   

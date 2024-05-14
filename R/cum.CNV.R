@@ -102,7 +102,7 @@ segment.Plot <-
         require(conumee2.0)
         mSetsAnno <-  sampleBinContr2(target_rgset, array_type)
       }
-        
+      require(ggplot2)
         if (segmentationMode == "single") {
             if (conumee.version == 1) {
                 singleSampleSeg(mSetsAnno,
@@ -117,29 +117,44 @@ segment.Plot <-
             }
             
         } else if (segmentationMode == "multi") {
+          if (conumee.version == 1) {
             multiSampleSeg(mSetsAnno,
                            thresh,
                            array_type,
                            colour.amplification,
                            colour.loss,
                            detail.regions)
+          } else{
+            multiSampleSeg2(mSetsAnno,
+                            thresh,
+                            array_type,
+                            colour.amplification,
+                            colour.loss,
+                            detail.regions)
+          }
         } else if (segmentationMode == "all") {
-            multiSampleSeg(mSetsAnno,
-                           thresh,
-                           array_type,
-                           colour.amplification,
-                           colour.loss,
-                           detail.regions)
             if (conumee.version == 1) {
                 singleSampleSeg(mSetsAnno,
                                 thresh,
                                 colour.amplification,
                                 colour.loss)
+              multiSampleSeg(mSetsAnno,
+                             thresh,
+                             array_type,
+                             colour.amplification,
+                             colour.loss,
+                             detail.regions)
             } else{
                 singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
                                  colour.loss)
+              multiSampleSeg2(mSetsAnno,
+                             thresh,
+                             array_type,
+                             colour.amplification,
+                             colour.loss,
+                             detail.regions)
             }
             
         }

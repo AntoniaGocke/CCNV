@@ -109,34 +109,34 @@ CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, ArrayType, colour.amplifica
     geneBins <- geneBins[!((abs(geneBins$V2)) <0.15),]
     
     cumCNV <- ggplot2::ggplot() +
-      geom_point(final_bin_data, mapping = aes(x=V1, y=V2, colour=V2))+ 
-      ylim(-2.5, 2.5) + 
-      scale_color_gradient2(low = colour.loss ,  mid = "white",  high = colour.amplification,  midpoint = 0, breaks = b, guide = "colourbar" , space = "Lab", name = "Intensity") + 
-      geom_vline(xintercept = genome_chr, colour = "grey") + 
-      geom_vline(xintercept = genome_centr,linetype="dotted", colour = "grey")  + 
-      geom_path(data = final_seg_data, aes(x = V1, y = V2)) + 
-      labs( y = "Intensity") + 
-      geom_point(data = geneBins, aes(x = V1, y = V2)) + 
+      ggplot2::geom_point(final_bin_data, mapping = aes(x=V1, y=V2, colour=V2))+ 
+      ggplot2::ylim(-2.5, 2.5) + 
+      ggplot2::scale_color_gradient2(low = colour.loss ,  mid = "white",  high = colour.amplification,  midpoint = 0, breaks = b, guide = "colourbar" , space = "Lab", name = "Intensity") + 
+      ggplot2::geom_vline(xintercept = genome_chr, colour = "grey") + 
+      ggplot2::geom_vline(xintercept = genome_centr,linetype="dotted", colour = "grey")  + 
+      ggplot2::geom_path(data = final_seg_data, aes(x = V1, y = V2)) + 
+      ggplot2::labs( y = "Intensity") + 
+      ggplot2::geom_point(data = geneBins, aes(x = V1, y = V2)) + 
       ggrepel::geom_label_repel(data = geneBins, aes(x = V1, y = V2), label = geneBins$genes, label.size = 0.2, nudge_x = 0.1, nudge_y = 0.1,) + 
-      scale_x_continuous(limits = c(10001, 2881033286), name = "Chromosome", breaks = axis_break, labels = axis_label ) +
-      theme_classic(base_size = 15) + 
-      coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
-      guides(x = guide_axis(n.dodge = 2))
+      ggplot2::scale_x_continuous(limits = c(10001, 2881033286), name = "Chromosome", breaks = axis_break, labels = axis_label ) +
+      ggplot2::theme_classic(base_size = 15) + 
+      ggplot2::coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
+      ggplot2::guides(x = guide_axis(n.dodge = 2))
   }
   
   if (annotate == FALSE){
-    cumCNV <- ggplot() +
-      geom_point(final_bin_data, mapping = aes(x=V1, y=V2, colour=V2))+ 
-      ylim(-2, 2) + 
-      scale_color_gradient2(low = colour.loss ,  mid = "white",  high = colour.amplification,  midpoint = 0, breaks = b, guide = "colourbar" , space = "Lab", name = "Intensity") + 
-      geom_vline(xintercept = genome_chr, colour = "grey") + 
-      geom_vline(xintercept = genome_centr,linetype="dotted", colour = "grey")  + 
-      geom_path(data = final_seg_data, aes(x = V1, y = V2)) + 
-      labs(y = "Intensity") +
-      scale_x_continuous(limits = c(10001, 2881033286), name = "Chromosome", breaks = axis_break, labels = axis_label ) +
-      theme_classic(base_size = 15) + 
-      coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
-      guides(x = guide_axis(n.dodge = 2))
+    cumCNV <- ggplot2::ggplot() +
+      ggplot2::geom_point(final_bin_data, mapping = aes(x=V1, y=V2, colour=V2))+ 
+      ggplot2::ylim(-2.5, 2.5) + 
+      ggplot2::scale_color_gradient2(low = colour.loss ,  mid = "white",  high = colour.amplification,  midpoint = 0, breaks = b, guide = "colourbar" , space = "Lab", name = "Intensity") + 
+      ggplot2::geom_vline(xintercept = genome_chr, colour = "grey") + 
+      ggplot2::geom_vline(xintercept = genome_centr,linetype="dotted", colour = "grey")  + 
+      ggplot2::geom_path(data = final_seg_data, aes(x = V1, y = V2)) + 
+      ggplot2::labs(y = "Intensity") +
+      ggplot2::scale_x_continuous(limits = c(10001, 2881033286), name = "Chromosome", breaks = axis_break, labels = axis_label ) +
+      ggplot2::theme_classic(base_size = 15) + 
+      ggplot2::coord_cartesian(xlim = c(50001, 2881033286), expand = FALSE) + 
+      ggplot2::guides(x = guide_axis(n.dodge = 2))
   }
   return(cumCNV)
 }

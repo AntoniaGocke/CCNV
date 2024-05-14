@@ -12,7 +12,7 @@ sampleBinContr <- function(target_rgset, ArrayType) {
     anno_targets <- conumee::CNV.create_anno(array_type = ArrayType)
     # Illumina normalisation
     target_mset <- minfi::preprocessIllumina(target_rgset)
-    #target_mset_mapped <- minfi::mapToGenome(target_mset)
+    target_mset_mapped <- minfi::mapToGenome(target_mset)
     #names_target_mset <- target_mset
     target_mset_loaded <- conumee::CNV.load(target_mset) 
     
@@ -26,8 +26,8 @@ sampleBinContr <- function(target_rgset, ArrayType) {
     control_mset_loaded <- conumee::CNV.load(control_mset)
     
     # find overlapping probes between arraydata and annotations
-    #anno_targets@probes <-
-    #    IRanges::subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
+    anno_targets@probes <-
+        IRanges::subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
     
     output <-
         list(
