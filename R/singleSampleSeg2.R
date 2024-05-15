@@ -21,14 +21,16 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
   segmentation_data$start <- as.numeric(segmentation_data$start)
   segmentation_data$end <- as.numeric(segmentation_data$end)
   segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
-  segmentation_data2 <- as.data.frame(segmentation_data)
+  segmentation_data <- as.data.frame(segmentation_data)
   
-  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss)
-  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
+  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss)
+  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh)
   sumplot <- CNV.summaryplot(x, threshold = thresh)
   
   #draw plots
   print(overlayPlot)
   print(singleFreqPlot)
   print(sumplot)
+  
+  return(segmentation_data)
 }

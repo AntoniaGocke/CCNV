@@ -42,4 +42,6 @@ multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, 
   print(cumCNV)
   print(cumFreq)
   
+  return(seg_mpcf)
+  
 }
