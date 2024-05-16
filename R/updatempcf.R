@@ -72,7 +72,9 @@ runFastMultiPCF <- function (x, gamma, frac1, frac2) {
               mean = compPotts$mean, nIntervals = compPotts$nIntervals))
 }
 
-#' todo
+#' Defines a sawtooth filter with double the specfied length
+#' @param half_length Parameter for the filter length, which will be 2*half_length
+#' @return vector of numeric with the filter elements
 define_sawtooth <- function(half_length){
     filter <- rep(0, 2*half_length)
     for (k in 1:half_length) {
@@ -82,6 +84,13 @@ define_sawtooth <- function(half_length){
     return(filter)
 }
 
+#' Applies a given filter over each column of a matrix and
+#' computes the respective sums
+#' @param x The matrix
+#' @param filter the filter (vector of numeric)
+#' @param start left-spacing of each row
+#' @param end right-spacing of each row
+#' @return vector of numeric with the filter elements
 apply_filter <- function(x, filter, start, end){
     sawValue <- rep(0, nrow(x))
     L <- length(filter)/2 # filter size assumed to be even
@@ -94,6 +103,16 @@ apply_filter <- function(x, filter, start, end){
     return(sawValue)
 }
 
+#' Takes a vector of values and marks positions at which the respective elements
+#' are larger than a given quantile
+#' @param mark Vector to write the marks to. Smaller elements are marked with
+#' a zero and larger elements are marked by one
+#' @param sawValue Vector of numeric. Must have same length as mark
+#' @param halflength Half the length of the filter used to create sawValue
+#' @param frac Threshold at 1-frac quantile
+#' @param start left-spacing of each row
+#' @param end right-spacing of each row
+#' @return the modified mark
 mark_points <- function(mark, sawValue, halflength, frac, start, end){
     limit <- quantile(sawValue, (1 - frac))
     
@@ -105,8 +124,7 @@ mark_points <- function(mark, sawValue, halflength, frac, start, end){
     return(mark)
 }
 
-## sawtooth-filter for multiPCF - marks potential breakpoints. Uses two
-## sawtoothfilters, one lang (length L) and one short (fixed length 6)
+## sawtooth-filter for multiPCF based on implementation in XXX
 sawMarkM <- function(x, frac1, frac2){
     L = 15
     mark <- rep(0, nrow(x))
