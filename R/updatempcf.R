@@ -9,40 +9,33 @@
 #' @return A dataframe representing segmentation data, containing columns for 
 #' the chromosome ,segmentation start ,segmentation end ,number of bins in that 
 #' segment, mean value for that segment, each segmentation value for each sample
-updatempcf <- function(data, gamma=5){
+updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
   
-  #Check data input:
   chrom <- data[,1]
   position <- data[,2]
-  nSample <- ncol(data)-2
   sampleid <- colnames(data)[-c(1:2)]
   nSample <- length(sampleid)
   
-  #Initialize
-  seg.names <- c("chrom","start.pos","end.pos","n.probes",sampleid)
   mpcf.names <- c("chrom","pos",sampleid)
   segments <- data.frame(matrix(nrow=0,ncol=nSample+5))
-  colnames(segments) <- seg.names
+  colnames(segments) <- c("chrom","start.pos","end.pos","n.probes",sampleid)
   
   #Scale gamma according to the number of samples:
   gamma <- gamma*nSample
-  num.chrom <- chrom
-  chrom.list <- unique(num.chrom)
-  nChrom <- length(chrom.list)
+  chrom.list <- unique(chrom)
   
   #run multiPCF separately on each chromosome:
-  for(c in 1:nChrom){
+  for(c in 1:length(chrom.list)){
     
-    probe.c <- which(num.chrom==chrom.list[c])
+    probe.c <- which(chrom==chrom.list[c])
     pos.c <- position[probe.c]
     nProbe.c <- length(probe.c)
     
     #get data for this chrom
-    chrom.data <- data[which(data$Chrom == c),]
-    chrom.data <- chrom.data[,-c(1:2)]
+    chrom.data <- data[which(data$Chrom == c),-c(1:2)]
     
     #Run multipcf:
-    mpcf <- runFastMultiPCF(as.matrix(chrom.data),gamma=gamma, 0.15, 0.15)    #requires samples in columns, probes in rows
+    mpcf <- runFastMultiPCF(as.matrix(chrom.data),gamma=gamma, frac1, frac2)    #requires samples in columns, probes in rows
     
     #Information about segments:
     nSeg <- mpcf$nIntervals
@@ -57,11 +50,11 @@ updatempcf <- function(data, gamma=5){
     chrid <- rep(chr,times=nSeg)
     
     #Round
-    seg.mean <- round(seg.mean,digits=4)
+    seg.mean <- round(seg.mean,digits=3)
     
     #Data frame:
     segments.c <- data.frame(chrid,posStart,posEnd,n.pos,seg.mean,stringsAsFactors=FALSE)
-    colnames(segments.c) <- seg.names
+    colnames(segments.c) <- colnames(segments)
     
     #Append results for this arm:
     segments <- rbind(segments,segments.c)
