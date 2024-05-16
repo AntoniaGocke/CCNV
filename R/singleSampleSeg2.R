@@ -28,9 +28,9 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
   sumplot <- CNV.summaryplot(x, threshold = thresh)
   
   #draw plots
-  print(overlayPlot)
-  print(singleFreqPlot)
-  print(sumplot)
+  suppressWarnings(print(overlayPlot))
+  suppressWarnings(print(singleFreqPlot))
+  suppressWarnings(print(sumplot))
   
   return(segmentation_data)
 }

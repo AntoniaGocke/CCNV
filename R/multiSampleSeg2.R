@@ -27,8 +27,8 @@ multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification,
   
   
   #draw plots
-  print(cumCNV)
-  print(cumFreq)
+  suppressWarnings(print(cumCNV))
+  suppressWarnings(print(cumFreq))
   
   return(seg_mpcf)
   

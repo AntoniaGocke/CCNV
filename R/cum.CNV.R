@@ -108,14 +108,12 @@ segment.Plot <-
                 singleSeg <- singleSampleSeg(mSetsAnno,
                                 thresh,
                                 colour.amplification,
-                                colour.loss,
-                                segVal)
+                                colour.loss)
             } else{
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
-                                 colour.loss,
-                                 segVal)
+                                 colour.loss)
             }
           return(singleSeg)
         } else if (segmentationMode == "multi") {

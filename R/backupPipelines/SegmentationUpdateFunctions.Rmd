@@ -13,7 +13,7 @@ suppressPackageStartupMessages(library(minfiDataEPIC))
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(IlluminaHumanMethylation450kanno.ilmn12.hg19))
 suppressPackageStartupMessages(library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19))
-suppressPackageStartupMessages(library(conumee2.0))
+suppressPackageStartupMessages(library(conumee))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggrepel))
 suppressPackageStartupMessages(library(tidyr))
@@ -589,31 +589,40 @@ CCNV <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colou
 singleSampleSeg<- function(mSetsAnno, ArrayType, thresh, colour.amplification, colour.loss){
   
   #load bin and segment each sample in conumee
-  foreach(1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
+  foreach(i = 1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
     {
       if(i==1) {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
-        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
       }
       else {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, mSetsAnno$anno_targets)))
-        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
         names(target_segmentation) <- names(segmentation_data)
         segmentation_data <- rbind(segmentation_data, target_segmentation)
       }
     }
   
-  names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
-  
+  names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample", "noise")
+
+  #arbiträrer Wert mit dem ich ganz gut gefahren bin
+  CNV_dynamic_cutoff <- 0.25
+
   segmentation_data$chromosome <- gsub("chr","",segmentation_data$chromosome)
   segmentation_data$chromosome <- as.numeric(segmentation_data$chromosome)
   sample_no <- as.numeric(length(unique(segmentation_data$sample)))
   segmentation_data$start <- as.numeric(segmentation_data$start)
   segmentation_data$end <- as.numeric(segmentation_data$end)
   segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
+  segmentation_data$noise <- as.numeric(segmentation_data$noise)
   segmentation_data2 <- as.data.frame(segmentation_data)
   
   overlayPlot <- overlayPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss)
+  
+  #redefine segmean as gain (1), loss (-1), or neutral (0)
+  segmentation_data$segmean_OLD <- segmentation_data$segmean
+  segmentation_data$segmean <- ifelse(segmentation_data$segmean_OLD > (segmentation_data$noise * CNV_dynamic_cutoff),   "1", ifelse(segmentation_data$segmean_OLD < -(segmentation_data$noise * CNV_dynamic_cutoff), "-1", "0"))
+  
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
 
   #draw plots
@@ -732,7 +741,6 @@ singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplificati
 }
 ```
 
-
 ```{r}
 overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colour.loss) {
   
@@ -790,7 +798,6 @@ overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colo
 }
 ```
 
-
 ```{r}
 cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", thresh = 0.2, colour.amplification = "red3", colour.loss = "blue4", detail.regions = NULL){
   
@@ -832,7 +839,7 @@ cum.CNV <- function(datafile, ArrayType = "overlap", segmentationMode = "all", t
   
 }
 
-p <- cum.CNV(target_files, segmentationMode = "single")
+cum.CNV(target_files, segmentationMode = "single", conumee.version = 1)
 
 ```
 

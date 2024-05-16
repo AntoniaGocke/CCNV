@@ -9,21 +9,25 @@
 singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss){
   
   #load bin and segment each sample in conumee
-  foreach(i=1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
+  #load bin and segment each sample in conumee
+  foreach(i = 1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
     {
       if(i==1) {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, anno = mSetsAnno$anno_targets)))
-        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
       }
       else {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit(query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_set_loaded, anno = mSetsAnno$anno_targets)))
-        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i])))
+        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
         names(target_segmentation) <- names(segmentation_data)
         segmentation_data <- rbind(segmentation_data, target_segmentation)
       }
     }
   
-  names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
+  names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample", "noise")
+  
+  #arbiträrer Wert mit dem ich ganz gut gefahren bin
+  CNV_dynamic_cutoff <- 0.25
   
   segmentation_data$chromosome <- gsub("chr","",segmentation_data$chromosome)
   segmentation_data$chromosome <- as.numeric(segmentation_data$chromosome)
@@ -31,14 +35,29 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss)
   segmentation_data$start <- as.numeric(segmentation_data$start)
   segmentation_data$end <- as.numeric(segmentation_data$end)
   segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
-  segmentation_data <- as.data.frame(segmentation_data)
+  segmentation_data$noise <- as.numeric(segmentation_data$noise)
+  segmentation_data2 <- as.data.frame(segmentation_data)
   
   overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss)
-  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh)
+  
+  #redefine segmean as gain (1), loss (-1), or neutral (0) in new segmentationdata dataframe
+  segmentation_data2$segmean_OLD <- segmentation_data2$segmean
+  foreach::foreach(j = 1:nrow(segmentation_data2)) %do% {
+    if (segmentation_data2$segmean_OLD[j] > (segmentation_data2$noise[j] * CNV_dynamic_cutoff)) {
+      segmentation_data2$segmean[j] <- 1
+    } else if (segmentation_data2$segmean_OLD[j] < -(segmentation_data2$noise[j] * CNV_dynamic_cutoff)) {
+      segmentation_data2$segmean[j] <- -1
+    } else {
+      segmentation_data2$segmean[j] <- 0
+    }
+     
+  }
+  
+  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
   
   #draw plots
-  print(overlayPlot)
-  print(singleFreqPlot)
+  suppressWarnings(print(overlayPlot))
+  suppressWarnings(print(singleFreqPlot))
   
   return(segmentation_data)
 }

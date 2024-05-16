@@ -81,8 +81,13 @@ cumFreq <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, co
       broad_candidates$col[i] <- "deletion"
     }
   }
-  
-  candidates <- rbind(focal_candidates[(focal_candidates$count!=0),], broad_candidates[(broad_candidates$count!=0),])
+  if (nrow(focal_candidates[(focal_candidates$count!=0),]) == 0) {
+    candidates <- broad_candidates[(broad_candidates$count!=0),]
+  } else if (nrow(broad_candidates[(broad_candidates$count!=0),]) == 0) {
+    candidates <- focal_candidates[(focal_candidates$count!=0),]
+  } else {
+    candidates <- rbind(focal_candidates[(focal_candidates$count!=0),], broad_candidates[(broad_candidates$count!=0),])
+  }
   sample_no <- ncol(seg_data_samples)
   b <- c(-1, -0.5, 0, 0.5, 1)
   y_axis_break <-c(-sample_no,-(sample_no/2) + -(sample_no/4), -(sample_no/2), -(sample_no/4),0, sample_no/4, sample_no/2,(sample_no/2) + (sample_no/4), sample_no)
