@@ -233,7 +233,7 @@ multiPCFcompact <- function(nr,sum,gamma) {
 	## Filling of first elements
 	Sum[ ,1]<-sum[,1]
 	Nevner[,1]<-nr[1]
-	bestSplit[1]<-0
+	#bestSplit[1]<-0
 	bestAver[,1] <- sum[,1]/nr[1]
 	helper <- rep(1, nSamples)
 	bestCost[1]<-helper%*%(-Sum[,1]*bestAver[,1])

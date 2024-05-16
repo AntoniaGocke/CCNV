@@ -56,8 +56,8 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss)
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
   
   #draw plots
-  suppressWarnings(print(overlayPlot))
-  suppressWarnings(print(singleFreqPlot))
+  suppressMessages(print(overlayPlot))
+  suppressMessages(print(singleFreqPlot))
   
   return(segmentation_data)
 }

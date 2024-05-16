@@ -34,4 +34,14 @@ details <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/d
 detail_regions <- details$name
 
 ```
+```{r}
+  yhat <- data.frame(matrix(rep(0,N*nSamples), nSamples, N))
+  bestCost <- rep(0,N)
+  bestSplit <- rep(0,N+1)
+  bestAver <- data.frame(matrix(rep(0,N*nSamples), nSamples, N))
+  Sum <- data.frame(matrix(rep(0,N*nSamples), nSamples, N))
+  Nevner <- data.frame(matrix(rep(0,N*nSamples), nSamples, N))
+  eachCost <- data.frame(matrix(rep(0,N*nSamples), nSamples, N))
+  Cost <- rep(0,N)
+```
 

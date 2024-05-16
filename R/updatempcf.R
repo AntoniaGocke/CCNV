@@ -61,7 +61,6 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
   return(segments)
 }
 
-
 # Fast version 
 runFastMultiPCF <- function (x, gamma, frac1, frac2) {
   mark <- rep(0, nrow(x))
@@ -71,6 +70,7 @@ runFastMultiPCF <- function (x, gamma, frac1, frac2) {
   return(list(length = compPotts$Lengde, start0 = compPotts$sta,
               mean = compPotts$mean, nIntervals = compPotts$nIntervals))
 }
+
 
 #' Defines a sawtooth filter with double the specfied length
 #' @param half_length Parameter for the filter length, which will be 2*half_length
@@ -126,7 +126,7 @@ mark_points <- function(mark, sawValue, halflength, frac, start, end){
 
 ## sawtooth-filter for multiPCF based on implementation in XXX
 sawMarkM <- function(x, frac1, frac2){
-    L = 15
+    L <- 15
     mark <- rep(0, nrow(x))
     sawValue <- rep(0, nrow(x))
     filter <- define_sawtooth(L)
@@ -136,78 +136,63 @@ sawMarkM <- function(x, frac1, frac2){
     sawValue2 <- apply_filter(x, filter2, L-1, L+2)
     mark <- mark_points(mark, sawValue, L, frac1, 1, 2*L)
     mark <- mark_points(mark, sawValue2, 3, frac2, L-1, L+2)
-    
     mark[1:L] <- 1
-
     for (l in 1:L) {
         mark[nrow(x) + 1 - l] <- 1
     }
-    
     return(mark)
 }
 
+
 # function that accumulates numbers of observations and sums between potential breakpoints
+#delsum ist summe aller bin intensitäten bis zum heuristischen breakpoint
+#returns a list nr and sum. nr is a vector, which tracks the number of bins to the last breakpoint, sum is a dataframe, that 
+#hhas the dimensions nof_breakpoints x samples and adds the intensities of each bin for each sample until the breakpoint
 compactMulti <- function(y, mark) {
-  #antGen <- ncol(y)
   antSample <- nrow(y)
-  antMark <- sum(mark)
+  antMark <- sum(mark) #anzahl gesetzte breakpoints
   ant <- rep(0, antMark)
-  sum <- data.frame(matrix(rep(0,antSample*antMark), antSample, antMark))
+  sum <- data.frame(matrix(rep(0,antSample*antMark), antSample, antMark)) #probenanzal x breakpoints
   delSum <- 0
   oldPos <- 0
   count <- 1
   foreach::foreach(i = 1:ncol(y)) %do% {
     if(mark[i] != 1) {
-    delSum <- delSum + y[, i]
+    delSum <- delSum + y[, i] #aufsummierung aller bins
     } else {
-      ant[count] <- i - oldPos
+      ant[count] <- i - oldPos 
       sum[, count] <- delSum + y[, i]
       oldPos <- i
       count <- count + 1
       delSum <- 0
     }
-    
   }
-
   list(Nr = ant, Sum = sum)
 }
 
 multiPCFcompact <- function(nr,sum,gamma) {
-  ## nr,sum : numbers and sums for one analysis unit,
-  ## typically one chromosomal arm. Samples assumed to be in rows.
-  ## gamma: penalty for discontinuities
   N <- length(nr)
   nSamples <- nrow(sum)
-  ## initialisations
-  yhat <- rep(0,N*nSamples);
-  dim(yhat) <- c(nSamples,N)
-  bestCost <- rep(0,N)
-  bestSplit <- rep(0,N+1)
-  bestAver <- rep(0,N*nSamples)
-  dim(bestAver) <- c(nSamples,N)
-  Sum <- rep(0,N*nSamples)
-  dim(Sum) <- c(nSamples,N)
-  Nevner <- rep(0,N*nSamples)
-  dim(Nevner) <- c(nSamples,N)
-  eachCost <- rep(0,N*nSamples)
-  dim(eachCost) <- c(nSamples,N)
-  Cost <- rep(0,N)
-  ## Filling of first elements
-  Sum[ ,1]<-sum[,1]
-  Nevner[,1]<-nr[1]
-  bestSplit[1]<-0
-  bestAver[,1] <- sum[,1]/nr[1]
-  helper <- rep(1, nSamples)
-  bestCost[1]<-helper%*%(-Sum[,1]*bestAver[,1])
-  lengde <- rep(0,N)
   
-  ## Solving for gradually longer arrays. Sum accumulates
-  ## error values for righthand plateau downward from n;
-  ## this error added to gamma and the stored cost in bestCost
-  ## give the total cost. Cost stores the total cost for breaks
-  ## at any position below n, and which.min finds the position
-  ## with lowest cost (best split). Aver is the average of the
-  ## righthand plateau.
+  # Initialize variables and matrices
+  bestCost <- rep(0, N)
+  Cost <- rep(0, N)  
+  lengde <- rep(0, N)
+  bestSplit <- rep(0, N+1)
+  helper <- rep(1, nSamples)
+  yhat <- matrix(0, nrow = nSamples, ncol = N)
+  bestAver <- matrix(0, nrow = nSamples, ncol = N)
+  Sum <- matrix(0, nrow = nSamples, ncol = N)
+  Nevner <- matrix(0, nrow = nSamples, ncol = N)
+  eachCost <- matrix(0, nrow = nSamples, ncol = N)
+  
+  # Fill first elements
+  Sum[, 1] <- sum[, 1]
+  Nevner[, 1] <- nr[1]
+  bestAver[, 1] <- sum[, 1] / nr[1]
+  bestCost[1] <- helper %*% (-Sum[, 1] * bestAver[, 1])
+  
+  # Segmentation analysis
   for (n in 2:N) {
     Sum[,1:n] <- Sum[ ,1:n]+sum[,n]
     Nevner[,1:n] <- Nevner[,1:n]+nr[n]
@@ -220,11 +205,9 @@ multiPCFcompact <- function(nr,sum,gamma) {
     bestCost[n] <- cost
     bestAver[ ,n] <- aver
     bestSplit[n] <- Pos-1
-    
   }
-  ## The final solution is found iteratively from the sequence
-  ## of split positions stored in bestSplit and the averages
-  ## for each plateau stored in bestAver
+  
+  # Calculate segment lengths
   n <- N
   antInt <- 0
   while (n > 0) {
@@ -242,16 +225,18 @@ multiPCFcompact <- function(nr,sum,gamma) {
     }
   }
   
+  # Prepare matrix to store mean values
   n <- N
-  verdi <- rep(0,antInt*nSamples)
-  dim(verdi) <- c(nSamples,antInt)
+  verdi <- matrix(0, nrow = nSamples, ncol = antInt)
   bestSplit[n+1] <- n
   antall <- antInt
   while (n > 0) {
     verdi[ ,antall] <- bestAver[ ,n]
     n <- bestSplit[n]
     antall <- antall-1
+
   }
   
-  list(Lengde = lengdeRev, sta = init, mean = verdi, nIntervals=antInt)
+  # Return results as a list
+  list(Lengde = lengdeRev, sta = init, mean = verdi, nIntervals = antInt)
 }
