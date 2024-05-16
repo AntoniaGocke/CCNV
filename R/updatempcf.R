@@ -1,4 +1,3 @@
-
 #' Segment multiple data together using the partial least squares regression
 #' as presented in XXX
 #'
@@ -73,57 +72,58 @@ runFastMultiPCF <- function (x, gamma, frac1, frac2) {
               mean = compPotts$mean, nIntervals = compPotts$nIntervals))
 }
 
+define_sawtooth <- function(half_length){
+    filter <- rep(0, 2*half_length)
+    for (k in 1:half_length) {
+        filter[k] <- k / half_length
+        filter[2 * half_length + 1 - k] <- -k / half_length
+    }
+    return(filter)
+}
+
+apply_filter <- function(x, filter){
+    sawValue <- rep(0, nrow(x))
+    L <- length(filter)/2 # filter size assumed to be even
+    for (l in 1:(nrow(x) - 2 * L + 1)) {
+        for (m in 1:ncol(x)) {
+            diff <- crossprod(filter, x[l:(l + 2 * L - 1), m])
+            sawValue[l + L - 1] <- sawValue[l + L - 1] + abs(diff)
+        }
+    }
+    return(sawValue)
+}
+
+mark_points <- function(mark, sawValue, halflength, frac){
+    limit <- quantile(sawValue, (1 - frac))
+    for (l in 1:(length(sawValue) - 2 * halflength)) {
+        if (sawValue[l + halflength - 1] > limit) {
+            mark[l + halflength - 1] <- 1
+        }
+    }
+    return(mark)
+}
+
 ## sawtooth-filter for multiPCF - marks potential breakpoints. Uses two
 ## sawtoothfilters, one lang (length L) and one short (fixed length 6)
 sawMarkM <- function(x, frac1, frac2){
-  L = 15
-  nrProbes <- nrow(x)
-  nrSample <- ncol(x)
-  mark <- rep(0, nrProbes)
-  sawValue <- rep(0, nrProbes)
-  filter <- rep(0, 2 * L)
-  sawValue2 <- rep(0, nrProbes)
-  filter2 <- rep(0, 6)
-  for (k in 1:L) {
-    filter[k] <- k / L
-    filter[2 * L + 1 - k] <- -k / L
-  }
-  
-  for (k in 1:3) {
-    filter2[k] <- k / 3
-    filter2[7 - k] <- -k / 3
-  }
-  
-  for (l in 1:(nrProbes - 2 * L + 1)) {
-    for (m in 1:nrSample) {
-      diff <- crossprod(filter, x[l:(l + 2 * L - 1), m])
-      sawValue[l + L - 1] <- sawValue[l + L - 1] + abs(diff)
-    }
-  }
-  limit <- quantile(sawValue, (1 - frac1))
-  for (l in 1:(nrProbes - 2 * L)) {
-    if (sawValue[l + L - 1] > limit) {
-      mark[l + L - 1] <- 1
-    }
-  }
-  for (l in (L - 1):(nrProbes - L - 2)) {
-    for (m in 1:nrSample) {
-      diff2 <- crossprod(filter2, x[l:(l + 5), m])
-      sawValue2[l + 2] <- sawValue2[l + 2] + abs(diff2)
-    }
-  }
-  limit2 <- quantile(sawValue2, (1 - frac2))
-  for (l in (L - 1):(nrProbes - L - 2)) {
-    if (sawValue2[l + 2] > limit2) {
-      mark[l + 2] <- 1
-    }
-  }
-  for (l in 1:L) {
-    mark[l] <- 1
-    mark[nrProbes + 1 - l] <- 1
-  }
-  
-  return(mark)
+    L <- 15
+    filter <- define_sawtooth(L)
+    filter2 <- define_sawtooth(3)
+    sawValue <- apply_filter(x, filter)
+    sawValue2 <- apply_filter(x, filter2)
+    
+    
+    nrProbes <- nrow(x)
+    nrSample <- ncol(x)
+    mark <- rep(0, nrow(x))
+    
+    mark <- mark_points(mark, sawValue, L, frac1)
+    mark <- mark_points(mark, sawValue2, L, frac2)
+    
+    mark[1:L] <- 1
+    mark[nrow(x):nrow(x)+L-1] <- 1
+    
+    return(mark)
 }
 
 # function that accumulates numbers of observations and sums between potential breakpoints
