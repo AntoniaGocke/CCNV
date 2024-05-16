@@ -128,28 +128,27 @@ sawMarkM <- function(x, frac1, frac2){
 
 # function that accumulates numbers of observations and sums between potential breakpoints
 compactMulti <- function(y, mark) {
-  antGen <- ncol(y)
+  #antGen <- ncol(y)
   antSample <- nrow(y)
   antMark <- sum(mark)
   ant <- rep(0, antMark)
-  sum <- rep(0, antMark * antSample)
-  dim(sum) <- c(antSample, antMark)
-  pos <- 1
+  sum <- data.frame(matrix(rep(0,antSample*antMark), antSample, antMark))
+  delSum <- 0
   oldPos <- 0
   count <- 1
-  delSum <- rep(0, antSample)
-  while (pos <= antGen) {
-    delSum <- 0
-    while (mark[pos] < 1) {
-      delSum <- delSum + y[, pos]
-      pos <- pos + 1
+  foreach::foreach(i = 1:ncol(y)) %do% {
+    if(mark[i] != 1) {
+    delSum <- delSum + y[, i]
+    } else {
+      ant[count] <- i - oldPos
+      sum[, count] <- delSum + y[, i]
+      oldPos <- i
+      count <- count + 1
+      delSum <- 0
     }
-    ant[count] <- pos - oldPos
-    sum[, count] <- delSum + y[, pos]
-    oldPos <- pos
-    pos <- pos + 1
-    count <- count + 1
+    
   }
+
   list(Nr = ant, Sum = sum)
 }
 
