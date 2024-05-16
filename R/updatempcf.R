@@ -72,6 +72,7 @@ runFastMultiPCF <- function (x, gamma, frac1, frac2) {
               mean = compPotts$mean, nIntervals = compPotts$nIntervals))
 }
 
+#' todo
 define_sawtooth <- function(half_length){
     filter <- rep(0, 2*half_length)
     for (k in 1:half_length) {
@@ -81,10 +82,10 @@ define_sawtooth <- function(half_length){
     return(filter)
 }
 
-apply_filter <- function(x, filter){
+apply_filter <- function(x, filter, start, end){
     sawValue <- rep(0, nrow(x))
     L <- length(filter)/2 # filter size assumed to be even
-    for (l in 1:(nrow(x) - 2 * L + 1)) {
+    for (l in start:(nrow(x) - end)) {
         for (m in 1:ncol(x)) {
             diff <- crossprod(filter, x[l:(l + 2 * L - 1), m])
             sawValue[l + L - 1] <- sawValue[l + L - 1] + abs(diff)
@@ -93,9 +94,10 @@ apply_filter <- function(x, filter){
     return(sawValue)
 }
 
-mark_points <- function(mark, sawValue, halflength, frac){
+mark_points <- function(mark, sawValue, halflength, frac, start, end){
     limit <- quantile(sawValue, (1 - frac))
-    for (l in 1:(length(sawValue) - 2 * halflength)) {
+    
+    for (l in start:(length(sawValue) - end)) {
         if (sawValue[l + halflength - 1] > limit) {
             mark[l + halflength - 1] <- 1
         }
@@ -106,22 +108,22 @@ mark_points <- function(mark, sawValue, halflength, frac){
 ## sawtooth-filter for multiPCF - marks potential breakpoints. Uses two
 ## sawtoothfilters, one lang (length L) and one short (fixed length 6)
 sawMarkM <- function(x, frac1, frac2){
-    L <- 15
-    filter <- define_sawtooth(L)
-    filter2 <- define_sawtooth(3)
-    sawValue <- apply_filter(x, filter)
-    sawValue2 <- apply_filter(x, filter2)
-    
-    
-    nrProbes <- nrow(x)
-    nrSample <- ncol(x)
+    L = 15
     mark <- rep(0, nrow(x))
-    
-    mark <- mark_points(mark, sawValue, L, frac1)
-    mark <- mark_points(mark, sawValue2, L, frac2)
+    sawValue <- rep(0, nrow(x))
+    filter <- define_sawtooth(L)
+    sawValue2 <- rep(0, nrow(x))
+    filter2 <- define_sawtooth(3)
+    sawValue <- apply_filter(x, filter, 1, (2*L-1))
+    sawValue2 <- apply_filter(x, filter2, L-1, L+2)
+    mark <- mark_points(mark, sawValue, L, frac1, 1, 2*L)
+    mark <- mark_points(mark, sawValue2, 3, frac2, L-1, L+2)
     
     mark[1:L] <- 1
-    mark[nrow(x):nrow(x)+L-1] <- 1
+
+    for (l in 1:L) {
+        mark[nrow(x) + 1 - l] <- 1
+    }
     
     return(mark)
 }
