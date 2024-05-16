@@ -18,7 +18,8 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
   
   mpcf.names <- c("chrom","pos",sampleid)
   segments <- data.frame(matrix(nrow=0,ncol=nSample+5))
-  colnames(segments) <- c("chrom","start.pos","end.pos","n.probes",sampleid)
+  seg.names <- c("chrom","start.pos","end.pos","n.probes",sampleid)
+  colnames(segments) <- seg.names
   
   #Scale gamma according to the number of samples:
   gamma <- gamma*nSample
@@ -29,7 +30,6 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
     
     probe.c <- which(chrom==chrom.list[c])
     pos.c <- position[probe.c]
-    nProbe.c <- length(probe.c)
     
     #get data for this chrom
     chrom.data <- data[which(data$Chrom == c),-c(1:2)]
@@ -43,24 +43,22 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
     n.pos <- mpcf$length
     seg.mean <- t(mpcf$mean)  #get samples in columns
     posStart <- pos.c[start0]
-    posEnd <- c(pos.c[start0-1],pos.c[nProbe.c])
+    posEnd <- c(pos.c[start0-1],pos.c[length(probe.c)])
     
-    #Chromosome number and character arm id:
-    chr <- unique(chrom[probe.c])
-    chrid <- rep(chr,times=nSeg)
+    #Chromosome number :
+    chrid <- rep(unique(chrom[probe.c]),times=nSeg)
     
     #Round
     seg.mean <- round(seg.mean,digits=3)
     
     #Data frame:
     segments.c <- data.frame(chrid,posStart,posEnd,n.pos,seg.mean,stringsAsFactors=FALSE)
-    colnames(segments.c) <- colnames(segments)
+    colnames(segments.c) <- seg.names
     
     #Append results for this arm:
     segments <- rbind(segments,segments.c)
     
   }
-  #return results:
   return(segments)
 }
 
