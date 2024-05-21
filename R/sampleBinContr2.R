@@ -7,7 +7,7 @@
 #' @return A list containing three objects, the mapped MethylSet of the target
 #' data, the mapped MethylSet of the control Data and the annotation file of
 #' the bins.
-sampleBinContr2 <- function(target_rgset, ArrayType) {
+sampleBinContr2 <- function(target_rgset, ArrayType, controls) {
   #generate bins with some good default values
   anno_targets <- conumee2.0::CNV.create_anno(array_type = ArrayType)
   # Illumina normalisation
@@ -16,18 +16,19 @@ sampleBinContr2 <- function(target_rgset, ArrayType) {
   #names_target_mset <- target_mset
   target_mset_loaded <- conumee::CNV.load(target_mset) 
   
-  #load controls based on ArrayType
-  if (ArrayType == "overlap" || ArrayType == "450k") {
-    control_mset <- minfiData::MsetEx
+  if (is.null(controls))  {
+    #load controls based on ArrayType
+    if (ArrayType == "overlap" || ArrayType == "450k") {
+      control_mset <- minfiData::MsetEx
+    }
+    if (ArrayType == "EPIC") {
+      control_mset <- minfiDataEPIC::MsetEPIC
+    }
+  } else {
+    control_mset <- controls
   }
-  if (ArrayType == "EPIC") {
-    control_mset <- minfiDataEPIC::MsetEPIC
-  }
-  control_mset_loaded <- conumee::CNV.load(control_mset)
   
-  # find overlapping probes between arraydata and annotations
-  #anno_targets@probes <-
-  #    IRanges::subsetByOverlaps(anno_targets@probes, granges(target_mset_mapped))
+  control_mset_loaded <- conumee::CNV.load(control_mset)
   
   output <-
     list(

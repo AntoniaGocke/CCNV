@@ -83,6 +83,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param conumee.version The conumee version to use.
+#' @param controls control data to normalize against, if the publicly available should not be used or ArrayType = EPICv2
 #'
 #' @return Returns the segmentation values either as a dataframe or a list of two dataframes.
 segment.Plot <-
@@ -94,13 +95,14 @@ segment.Plot <-
              colour.amplification,
              colour.loss,
              detail.regions,
-             conumee.version){
+             conumee.version,
+             controls){
       if(conumee.version == 1) {
         require(conumee)
-        mSetsAnno <-  sampleBinContr(target_rgset, array_type)
+        mSetsAnno <-  sampleBinContr(target_rgset, array_type, controls)
       } else {
         require(conumee2.0)
-        mSetsAnno <-  sampleBinContr2(target_rgset, array_type)
+        mSetsAnno <-  sampleBinContr2(target_rgset, array_type, controls)
       }
       require(ggplot2)
         if (segmentationMode == "single") {
@@ -177,6 +179,7 @@ segment.Plot <-
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450K, EPIC and to 2 for Mouse and EPICv2
 #' @param output determines the type of output. Can be either plot, data or all
+#' @param controls control samples either as MSet or NULL. If NULL, publicly available can be used (except for mouse or EPICv2)
 #'
 #' @return If the output is set to data or all, te segmentation values will be returned, else nothing will be returned and the figures are printed to the default plotting terminal.
 #' @export
@@ -189,7 +192,8 @@ cum.CNV <-
              colour.loss = "blue4",
              detail.regions = NULL,
              conumee.version = NULL,
-             output = "plot") {
+             output = "plot",
+             controls = NULL) {
         # check user input
         stopifnot("dataFiles must be a dataframe" = typeof(dataFiles) == "list")
         stopifnot("Basename must be a column of input dataframe dataFiles" =
@@ -253,7 +257,8 @@ cum.CNV <-
             colour.amplification,
             colour.loss,
             detail.regions,
-            conumee.version)
+            conumee.version,
+            controls)
         if (segVal == TRUE) {
           return(SegementationValues)
         } else {
