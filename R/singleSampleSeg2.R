@@ -25,12 +25,24 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
   
   overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss)
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh)
-  sumplot <- CNV.summaryplot(x, threshold = thresh)
   
-  #draw plots
-  suppressMessages(print(overlayPlot))
-  suppressMessages(print(singleFreqPlot))
-  suppressMessages(print(sumplot))
+  #return all plots and data, even if summaryplot not functioning
+  summaryplot <- function(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData){
+    tryCatch(
+      expr = {
+        message(CNV.summaryplot(x, threshold = thresh))
+      },
+      error = function(e){
+        message('Summary plot could not be generated.')
+        print(e)
+      },
+      finally = {
+        suppressMessages(print(overlayPlot))
+        suppressMessages(print(singleFreqPlot))
+        return(segmentation_data)
+      }
+    )    
+  }
   
-  return(segmentation_data)
+  summaryplot(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData)
 }

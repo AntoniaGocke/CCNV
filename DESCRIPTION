@@ -1,6 +1,6 @@
 Package: CCNV
 Title: Generating Cumulative Copy Number Variation Plots From DNA Methylation Data
-Version: 0.0.0.9000
+Version: 0.0.1.0
 Authors@R: 
     c(person("Antonia", "Gocke", , "an.gocke@uke.de", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0007-5828-6637‚‚")), person("Yannis", "Schumann", , "schumany@hsu-hh.de", role = c("aut"),
