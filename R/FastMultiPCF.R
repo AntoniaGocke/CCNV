@@ -8,7 +8,7 @@
 #' @return A dataframe representing segmentation data, containing columns for 
 #' the chromosome ,segmentation start ,segmentation end ,number of bins in that 
 #' segment, mean value for that segment, each segmentation value for each sample
-updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
+FastMultiPCF <- function(data, gamma=5, frac1=0.15, frac2=0.15){
   
   chrom <- data[,1]
   position <- data[,2]
@@ -37,7 +37,7 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
     mpcf <- runFastMultiPCF(as.matrix(chrom.data),gamma=gamma, frac1, frac2)    #requires samples in columns, probes in rows
     
     #Information about segments:
-    nSeg <- mpcf$nIntervals
+    nSeg <- mpcf$nBins
     start0 <- mpcf$start0
     n.pos <- mpcf$length
     seg.mean <- t(mpcf$mean)  #get samples in columns
@@ -63,12 +63,11 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
 
 # Fast version 
 runFastMultiPCF <- function (intensities, gamma, frac1, frac2) {
-  bpoints <- rep(0, nrow(intensities))
   bpoints<-findBreakpoints(intensities,frac1,frac2)
   aggr <- aggregateBins(t(intensities), bpoints)
   segs <- calcScoresSegs(aggr$Dist, aggr$Sum, gamma)
-  return(list(length = segs$Lengde, start0 = segs$sta,
-              mean = segs$mean, nIntervals = segs$nIntervals))
+  return(list(length = segs$segLen, start0 = segs$sta,
+              mean = segs$mean, nBins = segs$nBins))
 }
 
 
@@ -149,7 +148,6 @@ findBreakpoints <- function(x, frac1, frac2){
 #returns a list nr and sum. nr is a vector, which tracks the number of bins to the last breakpoint, sum is a dataframe, that 
 #has the dimensions nof_breakpoints x samples and adds the intensities of each bin for each sample until the breakpoint
 aggregateBins <- function(intensities, bpoints) {
-  #nofSample <- nrow(y)
   nof_bpoints <- sum(bpoints) #anzahl gesetzte breakpoints
   bDist <- rep(0, nof_bpoints)
   sums <- data.frame(matrix(0, nrow(intensities), nof_bpoints)) #probenanzal x breakpoints
@@ -173,68 +171,74 @@ aggregateBins <- function(intensities, bpoints) {
   list(Dist = bDist, Sum = sums)
 }
 
-calcScoresSegs <- function(nr, sum, gamma) {
-  N <- length(nr)
+
+#' Takes a vector of values and marks positions at which the respective elements
+#' are larger than a given quantile
+#' @param dist Vector with distances between breakpoints
+#' @param sum matrix with summed intensities between each breakpoint
+#' @param gamma threshold
+#' @return the modified vector of potential breakpoints
+calcScoresSegs <- function(dist, sum, gamma) {
+  N <- length(dist)
   nSamples <- nrow(sum)
   
-  # Initialize variables and matrices
+  # SegStaialize variables and matrices
   bestCost <- rep(0, N)
   Cost <- rep(0, N)  
-  lengde <- rep(0, N)
-  bestSplit <- rep(0, N+1)
-  helper <- rep(1, nSamples)
+  segLen <- rep(0, N)
+  bestSeg <- rep(0, N+1)
   yhat <- matrix(0, nSamples, N)
-  bestAver <- matrix(0, nSamples, N)
+  Aver <- matrix(0, nSamples, N)
   Sum <- matrix(0, nSamples, N)
-  Nevner <- matrix(0, nSamples, N)
+  Dist <- matrix(0, nSamples, N)
   eachCost <- matrix(0, nSamples, N)
   
-  # Fill first elements
+  # SegStaialise matrices
   Sum[, 1] <- sum[, 1]
-  Nevner[, 1] <- nr[1]
-  bestAver[, 1] <- sum[, 1] / nr[1]
-  bestCost[1] <- helper %*% (-Sum[, 1] * bestAver[, 1]) # %*% matrix multiplication
-  
+  Dist[, 1] <- dist[1]
+  Aver[, 1] <- sum[, 1] / dist[1]
+  bestCost[1] <- -sum(sum[, 1] * Aver[, 1])
   
   for (n in 2:N) {
     Sum[,1:n] <- Sum[,1:n] + sum[,n]
-    Nevner[,1:n] <- Nevner[,1:n] + nr[n]
-    eachCost[,1:n] <- -(Sum[,1:n]^2) / Nevner[,1:n]
-    Cost[1:n] <- helper %*% eachCost[,1:n]
+    Dist[,1:n] <- Dist[,1:n] + dist[n]
+    eachCost[,1:n] <- -(Sum[,1:n]^2) / Dist[,1:n]
+    Cost <- colSums(eachCost[, 1:n])
     Cost[2:n] <- Cost[2:n] + bestCost[1:(n-1)] + gamma
-    Pos <- which.min(Cost[1:n])
-    bestCost[n] <- Cost[Pos]
-    bestAver[,n] <- Sum[,Pos] / Nevner[,Pos]
-    bestSplit[n] <- Pos - 1
+    bestCost[n] <- Cost[which.min(Cost[1:n])]
+    Aver[,n] <- Sum[,which.min(Cost[1:n])] / Dist[,which.min(Cost[1:n])]
+    bestSeg[n] <- which.min(Cost[1:n]) - 1
   }
-  # Calculate segment lengths
+  
+  # Calculate best segments
   n <- N
   antInt <- 0
   while (n > 0) {
-    yhat[ , (bestSplit[n] + 1):n] <- bestAver[ , n]
+    yhat[, (bestSeg[n] + 1):n] <- Aver[ , n]
     antInt <- antInt + 1
-    lengde[antInt] <- sum(nr[(bestSplit[n] + 1):n])
-    n <- bestSplit[n]
+    segLen[antInt] <- sum(dist[(bestSeg[n] + 1):n])
+    n <- bestSeg[n]
   }
-  lengdeRev <- rev(lengde[1:antInt])
-  init <- cumsum(c(1, lengdeRev[-antInt]))
+  #move from right to left
+  segLenRev <- rev(segLen[1:antInt])
+  SegSta <- cumsum(c(1, segLenRev[-antInt]))
   if (antInt >= 2) {
-    for (k in 2:antInt) {
-      init[k] <- init[k - 1] + lengdeRev[k - 1]
+    for (j in 2:antInt) {
+      SegSta[j] <- SegSta[j - 1] + segLenRev[j - 1]
     }
   }
   
-  # Prepare matrix to store mean values
-  verdi <- matrix(0, nrow = nSamples, ncol = antInt)
+  # calculate mean intensities per segment
+  segMean <- matrix(0, nSamples, antInt)
   n <- N
-  bestSplit[n + 1] <- n
+  bestSeg[n + 1] <- n
   antall <- antInt
   while (n > 0) {
-    verdi[ , antall] <- bestAver[ , n]
-    n <- bestSplit[n]
+    segMean[, antall] <- Aver[, n]
+    n <- bestSeg[n]
     antall <- antall - 1
   }
   
   # Return results as a list
-  list(Lengde = lengdeRev, sta = init, mean = verdi, nIntervals = antInt)
+  list(segLen = segLenRev, sta = SegSta, mean = segMean, nBins = antInt)
 }

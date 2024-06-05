@@ -20,7 +20,7 @@ multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification,
   target_ratios <- na.omit(as.data.frame(sapply(target_ratios, as.numeric)))
   
   #################### Segmentation #################################
-  seg_mpcf <- updatempcf(target_ratios, gamma = 5)
+  seg_mpcf <- FastMultiPCF(target_ratios, gamma = 5)
   require(dplyr)
   cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions)
   cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
