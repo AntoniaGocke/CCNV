@@ -26,8 +26,7 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss)
   
   names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample", "noise")
   
-  #arbiträrer Wert mit dem ich ganz gut gefahren bin
-  CNV_dynamic_cutoff <- 0.25
+  CNV_dynamic_cutoff <- thresh
   
   segmentation_data$chromosome <- gsub("chr","",segmentation_data$chromosome)
   segmentation_data$chromosome <- as.numeric(segmentation_data$chromosome)
@@ -56,8 +55,8 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss)
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
   
   #draw plots
-  suppressMessages(print(overlayPlot))
-  suppressMessages(print(singleFreqPlot))
+  suppressWarnings(print(overlayPlot))
+  suppressWarnings(print(singleFreqPlot))
   
   return(segmentation_data)
 }

@@ -37,8 +37,8 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
         print(e)
       },
       finally = {
-        suppressMessages(print(overlayPlot))
-        suppressMessages(print(singleFreqPlot))
+        suppressWarnings(print(overlayPlot))
+        suppressWarnings(print(singleFreqPlot))
         return(segmentation_data)
       }
     )    

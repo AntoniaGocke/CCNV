@@ -71,7 +71,12 @@ singleFrequencyPlot <- function(mSetsAnno, segmentation_data, colour.amplificati
   
   to_plot$start <- as.numeric(to_plot$start)
   to_plot$end <- as.numeric(to_plot$end)
-  to_plot$end <- to_plot$end + 5000000
+  for(i in 1:length(to_plot$end)){
+    if ((to_plot$end[i] - to_plot$start[i]) <5000000) {
+      to_plot$end[i] <- to_plot$start[i] + 5000000
+    }
+  }
+  
   to_plot$count <- as.numeric(to_plot$count)
   
   singleFreqPlot <- ggplot2::ggplot() + geom_rect(data = to_plot,  aes(xmin = start, xmax = end, ymax = count, ymin = 0 , fill = type))  +

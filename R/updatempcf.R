@@ -62,20 +62,20 @@ updatempcf <- function(data, gamma=5, frac1=0.15, frac2=0.15){
 }
 
 # Fast version 
-runFastMultiPCF <- function (x, gamma, frac1, frac2) {
-  mark <- rep(0, nrow(x))
-  mark<-sawMarkM(x,frac1,frac2)
-  dense <- compactMulti(t(x), mark)
-  compPotts <- multiPCFcompact(dense$Nr, dense$Sum, gamma)
-  return(list(length = compPotts$Lengde, start0 = compPotts$sta,
-              mean = compPotts$mean, nIntervals = compPotts$nIntervals))
+runFastMultiPCF <- function (intensities, gamma, frac1, frac2) {
+  bpoints <- rep(0, nrow(intensities))
+  bpoints<-findBreakpoints(intensities,frac1,frac2)
+  aggr <- aggregateBins(t(intensities), bpoints)
+  segs <- calcScoresSegs(aggr$Dist, aggr$Sum, gamma)
+  return(list(length = segs$Lengde, start0 = segs$sta,
+              mean = segs$mean, nIntervals = segs$nIntervals))
 }
 
 
-#' Defines a sawtooth filter with double the specfied length
+#' Defines a highpass filter with double the specified length
 #' @param half_length Parameter for the filter length, which will be 2*half_length
 #' @return vector of numeric with the filter elements
-define_sawtooth <- function(half_length){
+define_cutoff <- function(half_length){
     filter <- rep(0, 2*half_length)
     for (k in 1:half_length) {
         filter[k] <- k / half_length
@@ -92,85 +92,88 @@ define_sawtooth <- function(half_length){
 #' @param end right-spacing of each row
 #' @return vector of numeric with the filter elements
 apply_filter <- function(x, filter, start, end){
-    sawValue <- rep(0, nrow(x))
+  hpfValue <- rep(0, nrow(x))
     L <- length(filter)/2 # filter size assumed to be even
     for (l in start:(nrow(x) - end)) {
         for (m in 1:ncol(x)) {
             diff <- crossprod(filter, x[l:(l + 2 * L - 1), m])
-            sawValue[l + L - 1] <- sawValue[l + L - 1] + abs(diff)
+            hpfValue[l + L - 1] <- hpfValue[l + L - 1] + abs(diff)
         }
     }
-    return(sawValue)
+    return(hpfValue)
 }
 
 #' Takes a vector of values and marks positions at which the respective elements
 #' are larger than a given quantile
-#' @param mark Vector to write the marks to. Smaller elements are marked with
+#' @param bpoints Vector to write the marks to. Smaller elements are marked with
 #' a zero and larger elements are marked by one
-#' @param sawValue Vector of numeric. Must have same length as mark
-#' @param halflength Half the length of the filter used to create sawValue
+#' @param hpfValue Vector of numeric. Must have same length as bpoints
+#' @param halflength Half the length of the filter used to create hpfValue
 #' @param frac Threshold at 1-frac quantile
 #' @param start left-spacing of each row
 #' @param end right-spacing of each row
-#' @return the modified mark
-mark_points <- function(mark, sawValue, halflength, frac, start, end){
-    limit <- quantile(sawValue, (1 - frac))
+#' @return the modified vector of potential breakpoints
+mark_points <- function(bpoints, hpfValue, halflength, frac, start, end){
+    limit <- quantile(hpfValue, (1 - frac))
     
-    for (l in start:(length(sawValue) - end)) {
-        if (sawValue[l + halflength - 1] > limit) {
-            mark[l + halflength - 1] <- 1
+    for (l in start:(length(hpfValue) - end)) {
+        if (hpfValue[l + halflength - 1] > limit) {
+          bpoints[l + halflength - 1] <- 1
         }
     }
-    return(mark)
+    return(bpoints)
 }
 
-## sawtooth-filter for multiPCF based on implementation in XXX
-sawMarkM <- function(x, frac1, frac2){
+## Highpass filter for heuristically determining potential breakpoints for multiPCF based on implementation in XXX
+findBreakpoints <- function(x, frac1, frac2){
     L <- 15
-    mark <- rep(0, nrow(x))
-    sawValue <- rep(0, nrow(x))
-    filter <- define_sawtooth(L)
-    sawValue2 <- rep(0, nrow(x))
-    filter2 <- define_sawtooth(3)
-    sawValue <- apply_filter(x, filter, 1, (2*L-1))
-    sawValue2 <- apply_filter(x, filter2, L-1, L+2)
-    mark <- mark_points(mark, sawValue, L, frac1, 1, 2*L)
-    mark <- mark_points(mark, sawValue2, 3, frac2, L-1, L+2)
-    mark[1:L] <- 1
+    bpoints <- rep(0, nrow(x))
+    hpfValue <- rep(0, nrow(x))
+    filter <- define_cutoff(L)
+    hpfValue2 <- rep(0, nrow(x))
+    filter2 <- define_cutoff(3)
+    hpfValue <- apply_filter(x, filter, 1, (2*L-1))
+    hpfValue2 <- apply_filter(x, filter2, L-1, L+2)
+    bpoints <- mark_points(bpoints, hpfValue, L, frac1, 1, 2*L)
+    bpoints <- mark_points(bpoints, hpfValue2, 3, frac2, L-1, L+2)
+    bpoints[1:L] <- 1
     for (l in 1:L) {
-        mark[nrow(x) + 1 - l] <- 1
+      bpoints[nrow(x) + 1 - l] <- 1
     }
-    return(mark)
+    return(bpoints)
 }
 
 
 # function that accumulates numbers of observations and sums between potential breakpoints
 #delsum ist summe aller bin intensitäten bis zum heuristischen breakpoint
 #returns a list nr and sum. nr is a vector, which tracks the number of bins to the last breakpoint, sum is a dataframe, that 
-#hhas the dimensions nof_breakpoints x samples and adds the intensities of each bin for each sample until the breakpoint
-compactMulti <- function(y, mark) {
-  antSample <- nrow(y)
-  antMark <- sum(mark) #anzahl gesetzte breakpoints
-  ant <- rep(0, antMark)
-  sum <- data.frame(matrix(rep(0,antSample*antMark), antSample, antMark)) #probenanzal x breakpoints
-  delSum <- 0
+#has the dimensions nof_breakpoints x samples and adds the intensities of each bin for each sample until the breakpoint
+aggregateBins <- function(intensities, bpoints) {
+  #nofSample <- nrow(y)
+  nof_bpoints <- sum(bpoints) #anzahl gesetzte breakpoints
+  bDist <- rep(0, nof_bpoints)
+  sums <- data.frame(matrix(0, nrow(intensities), nof_bpoints)) #probenanzal x breakpoints
+  intSum <- 0
   oldPos <- 0
-  count <- 1
-  foreach::foreach(i = 1:ncol(y)) %do% {
-    if(mark[i] != 1) {
-    delSum <- delSum + y[, i] #aufsummierung aller bins
+  counter <- 1
+  
+  #iterate over each bin. calculate distances and sums between bpoints 
+  foreach::foreach(i = 1:ncol(intensities)) %do% {
+    if(bpoints[i] != 1) {
+      intSum <- intSum + intensities[, i] 
     } else {
-      ant[count] <- i - oldPos 
-      sum[, count] <- delSum + y[, i]
+      #potential breakpoint
+      bDist[counter] <- i - oldPos 
+      sums[, counter] <- intSum + intensities[, i]
       oldPos <- i
-      count <- count + 1
-      delSum <- 0
+      counter <- counter + 1
+      intSum <- 0
     }
   }
-  list(Nr = ant, Sum = sum)
+  list(Dist = bDist, Sum = sums)
 }
 
-multiPCFcompact <- function(nr,sum,gamma) {
+calcScoresSegs <- function(nr, sum, gamma) {
   N <- length(nr)
   nSamples <- nrow(sum)
   
@@ -180,61 +183,56 @@ multiPCFcompact <- function(nr,sum,gamma) {
   lengde <- rep(0, N)
   bestSplit <- rep(0, N+1)
   helper <- rep(1, nSamples)
-  yhat <- matrix(0, nrow = nSamples, ncol = N)
-  bestAver <- matrix(0, nrow = nSamples, ncol = N)
-  Sum <- matrix(0, nrow = nSamples, ncol = N)
-  Nevner <- matrix(0, nrow = nSamples, ncol = N)
-  eachCost <- matrix(0, nrow = nSamples, ncol = N)
+  yhat <- matrix(0, nSamples, N)
+  bestAver <- matrix(0, nSamples, N)
+  Sum <- matrix(0, nSamples, N)
+  Nevner <- matrix(0, nSamples, N)
+  eachCost <- matrix(0, nSamples, N)
   
   # Fill first elements
   Sum[, 1] <- sum[, 1]
   Nevner[, 1] <- nr[1]
   bestAver[, 1] <- sum[, 1] / nr[1]
-  bestCost[1] <- helper %*% (-Sum[, 1] * bestAver[, 1])
+  bestCost[1] <- helper %*% (-Sum[, 1] * bestAver[, 1]) # %*% matrix multiplication
   
-  # Segmentation analysis
+  
   for (n in 2:N) {
-    Sum[,1:n] <- Sum[ ,1:n]+sum[,n]
-    Nevner[,1:n] <- Nevner[,1:n]+nr[n]
-    eachCost[,1:n] <- -(Sum[ ,1:n]^2)/Nevner[ ,1:n]
-    Cost[1:n] <- helper %*% eachCost[, 1:n]
-    Cost[2:n] <- Cost[2:n]+bestCost[1:(n-1)]+gamma
+    Sum[,1:n] <- Sum[,1:n] + sum[,n]
+    Nevner[,1:n] <- Nevner[,1:n] + nr[n]
+    eachCost[,1:n] <- -(Sum[,1:n]^2) / Nevner[,1:n]
+    Cost[1:n] <- helper %*% eachCost[,1:n]
+    Cost[2:n] <- Cost[2:n] + bestCost[1:(n-1)] + gamma
     Pos <- which.min(Cost[1:n])
-    cost <- Cost[Pos]
-    aver <- Sum[ ,Pos]/Nevner[,Pos]
-    bestCost[n] <- cost
-    bestAver[ ,n] <- aver
-    bestSplit[n] <- Pos-1
+    bestCost[n] <- Cost[Pos]
+    bestAver[,n] <- Sum[,Pos] / Nevner[,Pos]
+    bestSplit[n] <- Pos - 1
   }
-  
   # Calculate segment lengths
   n <- N
   antInt <- 0
   while (n > 0) {
-    yhat[ ,(bestSplit[n]+1):n] <- bestAver[ ,n]
-    antInt <- antInt+1
-    lengde[antInt] <- sum(nr[(bestSplit[n]+1):n])
+    yhat[ , (bestSplit[n] + 1):n] <- bestAver[ , n]
+    antInt <- antInt + 1
+    lengde[antInt] <- sum(nr[(bestSplit[n] + 1):n])
     n <- bestSplit[n]
   }
-  lengdeRev <- lengde[antInt:1]
-  init <- rep(0,antInt)
-  init[1]<-1
-  if(antInt>=2){
-    for(k in 2:antInt){
-      init[k]<-init[k-1]+lengdeRev[k-1]
+  lengdeRev <- rev(lengde[1:antInt])
+  init <- cumsum(c(1, lengdeRev[-antInt]))
+  if (antInt >= 2) {
+    for (k in 2:antInt) {
+      init[k] <- init[k - 1] + lengdeRev[k - 1]
     }
   }
   
   # Prepare matrix to store mean values
-  n <- N
   verdi <- matrix(0, nrow = nSamples, ncol = antInt)
-  bestSplit[n+1] <- n
+  n <- N
+  bestSplit[n + 1] <- n
   antall <- antInt
   while (n > 0) {
-    verdi[ ,antall] <- bestAver[ ,n]
+    verdi[ , antall] <- bestAver[ , n]
     n <- bestSplit[n]
-    antall <- antall-1
-
+    antall <- antall - 1
   }
   
   # Return results as a list

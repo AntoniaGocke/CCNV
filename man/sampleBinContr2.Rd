@@ -5,7 +5,7 @@
 \title{binning target data and publicly available control data and mapping them to
 the genome and generating annotation file for bins using conumee2.0}
 \usage{
-sampleBinContr2(target_rgset, ArrayType)
+sampleBinContr2(target_rgset, ArrayType, controls)
 }
 \arguments{
 \item{target_rgset}{RGchannelSet of data to be binned}

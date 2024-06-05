@@ -32,10 +32,10 @@ while (anyDuplicated(target_files$Basename) != "0") {
 PFB2_5 <- target_files[which(target_files$Classifier_new_version_condensed == "EPN_PFB_1_to_5"),]
 PFB2_5 <- PFB2_5[-which(PFB2_5$Classifier_new_version == "EPN_PFB_1"),]
 
-cum.CNV(PFB1, segmentationMode = "single", detail.regions = detail_regions, output = "plot", conumee.version = 2)
+cumul.CNV(PFB2_5, segmentationMode = "multi")
 
-details <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
-detail_regions <- details$name
+#details <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
+#detail_regions <- details$name
 
 ```
 ```{r}

@@ -5,7 +5,7 @@
 \title{Segment multiple data together using the partial least squares regression
 as presented in XXX}
 \usage{
-updatempcf(data, gamma = 5)
+updatempcf(data, gamma = 5, frac1 = 0.15, frac2 = 0.15)
 }
 \arguments{
 \item{data}{dataframe of binned copy number data in the format (samples,

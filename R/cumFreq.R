@@ -51,7 +51,12 @@ cumFreq <- function(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, co
   
   #focal candidates
   focal_candidates <- df_abberation_candidates
-  focal_candidates$seg_end <- focal_candidates$seg_end + 10000000
+  #focal_candidates$seg_end <- focal_candidates$seg_end + 10000000
+  for (i in 1:length(focal_candidates$seg_end)) {
+    if ((focal_candidates$seg_end[i] - focal_candidates$seg_start[i]) <5000000) {
+      focal_candidates$seg_end[i] <- focal_candidates$seg_start[i] + 5000000
+    }
+  }
   focal_candidates <- focal_candidates[!((abs(focal_candidates$`seg_mpcf$n.probes`)) < focal_min_probes),]
   focal_candidates$mean <- rowMeans(seg_data_samples)
   focal_candidates$col <- "amplification"

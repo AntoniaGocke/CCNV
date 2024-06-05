@@ -177,13 +177,14 @@ segment.Plot <-
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' #conumee version new name
 #' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450K, EPIC and to 2 for Mouse and EPICv2
 #' @param output determines the type of output. Can be either plot, data or all
 #' @param controls control samples either as MSet or NULL. If NULL, publicly available can be used (except for mouse or EPICv2)
 #'
 #' @return If the output is set to data or all, te segmentation values will be returned, else nothing will be returned and the figures are printed to the default plotting terminal.
 #' @export
-cum.CNV <-
+cumul.CNV <-
     function(dataFiles,
              segmentationMode = "all",
              thresh = 0.2,
