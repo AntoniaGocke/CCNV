@@ -10,11 +10,15 @@
 sampleBinContr2 <- function(target_rgset, ArrayType, controls) {
   #generate bins with some good default values
   anno_targets <- conumee2.0::CNV.create_anno(array_type = ArrayType)
-  # Illumina normalisation
-  target_mset <- minfi::preprocessIllumina(target_rgset)
-  #target_mset_mapped <- minfi::mapToGenome(target_mset)
-  #names_target_mset <- target_mset
-  target_mset_loaded <- conumee::CNV.load(target_mset) 
+  if (ArrayType %in% c("EPICv2", "mouse") {
+    target_mset <- conumee2.0::CNV.import(target_rgset$array_type, target_rgset$directory, target_rgset$sample_sheet)
+    }
+    else {
+      # Illumina normalisation
+      target_mset <- minfi::preprocessIllumina(target_rgset)
+      }
+  
+  target_mset_loaded <- conumee2.0::CNV.load(target_mset) 
   
   if (is.null(controls))  {
     #load controls based on ArrayType
@@ -28,7 +32,7 @@ sampleBinContr2 <- function(target_rgset, ArrayType, controls) {
     control_mset <- controls
   }
   
-  control_mset_loaded <- conumee::CNV.load(control_mset)
+  control_mset_loaded <- conumee2.0::CNV.load(control_mset)
   
   output <-
     list(

@@ -38,8 +38,8 @@ get.ConumeeVersion <- function(ArrayType) {
 #' @return A list of the RGSet of the target data, the control data and the annotation data
 read.RGSet <- function(dataFiles, ArrayType) {
     stopifnot(
-        "Only 450K, EPIC and combined are permitted as ArrayType at the moment. EPIC2 is still missing" =
-            (ArrayType %in% c("450K", "EPIC", "combined"))
+        "Only 450K, EPIC, EPICv2, mouse and combined are permitted as ArrayType at the moment" =
+            (ArrayType %in% c("450K", "EPIC", "combined", "EPICv2", "mouse"))
     )
     types = unique(dataFiles$ArrayType)
     
@@ -69,6 +69,19 @@ read.RGSet <- function(dataFiles, ArrayType) {
             minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_EPIC
         
+    }
+    if (ArrayType %in% c("EPICv2", "mouse") {
+      targetDirectory <- dirname(dataFiles$Basename[1])
+      sample_sheet <- data.frame(matrix(0, 3 , length(dataFiles$Basename)))
+      names(sample_sheet) <- c("Sample_Name", "Sentrix_ID", "Sentrix_Position")
+      for (i in 1:length(dataFiles$Basename)) {
+        sample_sheet$Sample_Name[i] <- basename(dataFiles$Basename[i])
+        Sentrix_parts <- strsplit(sample_sheet$Sample_Name[i], "_")[[1]]
+        sample_sheet$Sentrix_ID[i] <- Sentrix_parts[1]
+        sample_sheet$Sentrix_Position[i] <- Sentrix_parts[2]
+      }
+      target_rgset <- list("array_type" = Array_Type, "directory" = targetDirectory, "sample_sheet" = sample_sheet)
+      
     }
     
     return(target_rgset)

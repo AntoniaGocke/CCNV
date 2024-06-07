@@ -182,18 +182,17 @@ calcScoresSegs <- function(dist, sum, gamma) {
   N <- length(dist)
   nSamples <- nrow(sum)
   
-  # SegStaialize variables and matrices
+  # initialise variables and matrices
   bestCost <- rep(0, N)
   Cost <- rep(0, N)  
   segLen <- rep(0, N)
   bestSeg <- rep(0, N+1)
-  yhat <- matrix(0, nSamples, N)
   Aver <- matrix(0, nSamples, N)
   Sum <- matrix(0, nSamples, N)
   Dist <- matrix(0, nSamples, N)
   eachCost <- matrix(0, nSamples, N)
   
-  # SegStaialise matrices
+  # initialise matrices
   Sum[, 1] <- sum[, 1]
   Dist[, 1] <- dist[1]
   Aver[, 1] <- sum[, 1] / dist[1]
@@ -214,7 +213,6 @@ calcScoresSegs <- function(dist, sum, gamma) {
   n <- N
   antInt <- 0
   while (n > 0) {
-    yhat[, (bestSeg[n] + 1):n] <- Aver[ , n]
     antInt <- antInt + 1
     segLen[antInt] <- sum(dist[(bestSeg[n] + 1):n])
     n <- bestSeg[n]
