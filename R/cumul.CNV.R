@@ -12,8 +12,10 @@ get.ArrayType <- function(dataFiles) {
         ArrayType <- "450K"
     } else if (("EPIC" %in% types) & (length(types) == 1)) {
         ArrayType <- "EPIC"
-    } else if (("EPIC2" %in% types) & (length(types) == 1)) {
-        ArrayType <- "EPIC2"
+    } else if (("EPICv2" %in% types) & (length(types) == 1)) {
+        ArrayType <- "EPICv2"
+    }else if (("mouse" %in% types) & (length(types) == 1)) {
+      ArrayType <- "mouse"
     }
     return(ArrayType)
 }
@@ -25,7 +27,7 @@ get.ArrayType <- function(dataFiles) {
 #' @return The conumee version (either 1 or 2)
 get.ConumeeVersion <- function(ArrayType) {
     v <- 1
-    if (ArrayType %in% c("EPIC2")) {
+    if (ArrayType %in% c("EPIC2", "EPICv2", "mouse")) {
         v <- 2
     }
     return(v)
@@ -70,7 +72,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
         target_rgset <- rgset_EPIC
         
     }
-    if (ArrayType %in% c("EPICv2", "mouse") {
+    if (ArrayType %in% c("EPICv2", "mouse")) {
       targetDirectory <- dirname(dataFiles$Basename[1])
       sample_sheet <- data.frame(matrix(0, 3 , length(dataFiles$Basename)))
       names(sample_sheet) <- c("Sample_Name", "Sentrix_ID", "Sentrix_Position")
@@ -80,7 +82,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
         sample_sheet$Sentrix_ID[i] <- Sentrix_parts[1]
         sample_sheet$Sentrix_Position[i] <- Sentrix_parts[2]
       }
-      target_rgset <- list("array_type" = Array_Type, "directory" = targetDirectory, "sample_sheet" = sample_sheet)
+      target_rgset <- list("array_type" = ArrayType, "directory" = targetDirectory, "sample_sheet" = sample_sheet)
       
     }
     
@@ -261,7 +263,8 @@ cumul.CNV <-
         
         if(!is.null(controls)) {
           controlsRG <- read.RGSet(controls, array_type)
-          if (array_type %in% c("EPICv2", "mouse") {
+          if (array_type %in% c("EPICv2", "mouse")) {
+            require(conumee2.0)
             control_mset <- conumee2.0::CNV.import(controlsRG$array_type, controlsRG$directory, controlsRG$sample_sheet)
           }
           else {
