@@ -16,7 +16,7 @@ sampleBinContr2 <- function(target_rgset, ArrayType, controls) {
     else {
       # Illumina normalisation
       target_mset <- minfi::preprocessIllumina(target_rgset)
-      }
+    }
   
   target_mset_loaded <- conumee2.0::CNV.load(target_mset) 
   

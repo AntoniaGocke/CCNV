@@ -96,7 +96,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param conumee.version The conumee version to use.
-#' @param controls control data to normalize against, if the publicly available should not be used or ArrayType = EPICv2
+#' @param controls control data to normalize against, if the publicly available should not be used or ArrayType = EPICv2 or mouse
 #'
 #' @return Returns the segmentation values either as a dataframe or a list of two dataframes.
 segment.Plot <-
@@ -193,7 +193,7 @@ segment.Plot <-
 #' #conumee version new name
 #' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450K, EPIC and to 2 for Mouse and EPICv2
 #' @param output determines the type of output. Can be either plot, data or all
-#' @param controls control samples either as MSet or NULL. If NULL, publicly available can be used (except for mouse or EPICv2)
+#' @param controls control samples as a dataframe with columns ArrayType and Basename or NULL. If NULL, publicly available can be used (except for mouse or EPICv2 or mouse data)
 #'
 #' @return If the output is set to data or all, te segmentation values will be returned, else nothing will be returned and the figures are printed to the default plotting terminal.
 #' @export
@@ -258,6 +258,18 @@ cumul.CNV <-
         } else {
           segVal = TRUE
         }
+        
+        if(!is.null(controls)) {
+          controlsRG <- read.RGSet(controls, array_type)
+          if (array_type %in% c("EPICv2", "mouse") {
+            control_mset <- conumee2.0::CNV.import(controlsRG$array_type, controlsRG$directory, controlsRG$sample_sheet)
+          }
+          else {
+            control_mset <- minfi::preprocessIllumina(controlsRG)
+          }
+          controls <- control_mset
+        }
+        
         # read in RGSet
         target_rgset <- read.RGSet(dataFiles, array_type)
         
