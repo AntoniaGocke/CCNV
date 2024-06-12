@@ -6,7 +6,7 @@
 #' @param detail.regions Either NULL or a vector of gene names.
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss){
+singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type){
   
   #load bin and segment each sample in conumee
   #load bin and segment each sample in conumee

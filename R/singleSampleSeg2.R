@@ -4,13 +4,13 @@
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' @param array_type Type of methylation array used
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss){
+singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type){
   
   x <- conumee2.0::CNV.segment(conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, anno = mSetsAnno$anno_targets)))
   conSegData <- dplyr::bind_rows(x@seg$summary, .id = "column_label")
-  
   segmentation_data <- as.data.frame(cbind(conSegData$chrom, conSegData$loc.start, conSegData$loc.end, conSegData$seg.mean, conSegData$ID))
   
   names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample")
@@ -23,8 +23,8 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
   segmentation_data$segmean <- as.numeric(segmentation_data$segmean)
   segmentation_data <- as.data.frame(segmentation_data)
   
-  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss)
-  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh)
+  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, array_type)
+  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh, array_type)
   
   #return all plots and data, even if summaryplot not functioning
   summaryplot <- function(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData){

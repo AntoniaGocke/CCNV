@@ -1,6 +1,7 @@
 #' Segments the data using the multipcf algorithm and visualizes DNA methylation data and generative cumulative plots using conumee
 #' @param mSetsAnno A list of the RGSet of the target data, the control data and the annotation data
 #' @param thresh A positive float (>=0) indicating the threshold for an abberation.
+#' @param array_type Type of methylation array
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.

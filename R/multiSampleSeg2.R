@@ -4,6 +4,7 @@
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' @param array_type Type of methylation array
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
 multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions){
@@ -22,8 +23,8 @@ multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification,
   #################### Segmentation #################################
   seg_mpcf <- FastMultiPCF(target_ratios, gamma = 5)
   require(dplyr)
-  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions)
-  cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
+  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions, array_type)
+  cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh, array_type)
   
   
   #draw plots

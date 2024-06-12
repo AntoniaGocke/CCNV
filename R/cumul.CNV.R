@@ -125,12 +125,14 @@ segment.Plot <-
                 singleSeg <- singleSampleSeg(mSetsAnno,
                                 thresh,
                                 colour.amplification,
-                                colour.loss)
+                                colour.loss,
+                                array_type)
             } else{
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
-                                 colour.loss)
+                                 colour.loss,
+                                 array_type)
             }
           return(singleSeg)
         } else if (segmentationMode == "multi") {
@@ -155,7 +157,8 @@ segment.Plot <-
               singleSeg <- singleSampleSeg(mSetsAnno,
                                 thresh,
                                 colour.amplification,
-                                colour.loss)
+                                colour.loss,
+                                array_type)
               multiSeg <- multiSampleSeg(mSetsAnno,
                              thresh,
                              array_type,
@@ -166,7 +169,8 @@ segment.Plot <-
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
-                                 colour.loss)
+                                 colour.loss,
+                                 array_type)
               multiSeg <- multiSampleSeg2(mSetsAnno,
                              thresh,
                              array_type,
