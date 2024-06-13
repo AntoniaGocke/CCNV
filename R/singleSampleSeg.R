@@ -38,7 +38,7 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss,
   segmentation_data$noise <- as.numeric(segmentation_data$noise)
   segmentation_data2 <- as.data.frame(segmentation_data)
   
-  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss)
+  overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, array_type)
   
   #redefine segmean as gain (1), loss (-1), or neutral (0) in new segmentationdata dataframe
   segmentation_data2$segmean_OLD <- segmentation_data2$segmean
@@ -53,7 +53,7 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss,
      
   }
   
-  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
+  singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh, array_type)
   
   if (showPlot == "TRUE"){
     #draw plots
