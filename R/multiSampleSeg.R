@@ -36,8 +36,8 @@ multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, 
   #################### Segmentation #################################
   seg_mpcf <- FastMultiPCF(target_ratios, gamma = 5)
   suppressMessages(require(dplyr))
-  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions)
-  cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
+  cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions, array_type)
+  cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh, array_type)
   
   
   if (showPlot == "TRUE") {
