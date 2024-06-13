@@ -5,9 +5,10 @@
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
+#' @param showPlot boolean that determines, if the plots will be displayed
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions){
+multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions, showPlot){
   target_mset_loaded <- mSetsAnno$target_mset_loaded
   control_mset_loaded <- mSetsAnno$control_mset_loaded
   anno_targets <- mSetsAnno$anno_targets
@@ -39,9 +40,11 @@ multiSampleSeg <- function(mSetsAnno, thresh, array_type, colour.amplification, 
   cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh)
   
   
-  #draw plots
-  suppressMessages(print(cumCNV))
-  suppressMessages(print(cumFreq))
+  if (showPlot == "TRUE") {
+    #draw plots
+    suppressWarnings(print(cumCNV))
+    suppressWarnings(print(cumFreq))
+  }
   
   return(seg_mpcf)
   

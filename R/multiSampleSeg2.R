@@ -5,9 +5,10 @@
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param array_type Type of methylation array
+#' @param showPlot boolean that determines, if the plots will be displayed
 #'
 #' @return Nothing. Will print the figures to the default plotting terminal.
-multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions){
+multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification, colour.loss, detail.regions, showPlot){
   
   #load and bin each sample in conumee
   x <- conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
@@ -26,10 +27,11 @@ multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification,
   cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions, array_type)
   cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh, array_type)
   
-  
-  #draw plots
-  suppressWarnings(print(cumCNV))
-  suppressWarnings(print(cumFreq))
+  if (showPlot == "TRUE") {
+    #draw plots
+    suppressWarnings(print(cumCNV))
+    suppressWarnings(print(cumFreq))
+  }
   
   return(seg_mpcf)
   

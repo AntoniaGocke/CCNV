@@ -99,6 +99,7 @@ read.RGSet <- function(dataFiles, ArrayType) {
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param conumee.version The conumee version to use.
 #' @param controls control data to normalize against, if the publicly available should not be used or ArrayType = EPICv2 or mouse
+#' @param showPlot boolean that determines, if the plots will be displayed
 #'
 #' @return Returns the segmentation values either as a dataframe or a list of two dataframes.
 segment.Plot <-
@@ -111,7 +112,8 @@ segment.Plot <-
              colour.loss,
              detail.regions,
              conumee.version,
-             controls){
+             controls,
+             showPlot){
       if(conumee.version == 1) {
         require(conumee)
         mSetsAnno <-  sampleBinContr(target_rgset, array_type, controls)
@@ -126,13 +128,15 @@ segment.Plot <-
                                 thresh,
                                 colour.amplification,
                                 colour.loss,
-                                array_type)
+                                array_type,
+                                showPlot)
             } else{
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
                                  colour.loss,
-                                 array_type)
+                                 array_type,
+                                 showPlot)
             }
           return(singleSeg)
         } else if (segmentationMode == "multi") {
@@ -142,14 +146,16 @@ segment.Plot <-
                            array_type,
                            colour.amplification,
                            colour.loss,
-                           detail.regions)
+                           detail.regions,
+                           showPlot)
           } else{
             multiSeg <- multiSampleSeg2(mSetsAnno,
                             thresh,
                             array_type,
                             colour.amplification,
                             colour.loss,
-                            detail.regions)
+                            detail.regions,
+                            showPlot)
           }
           return(multiSeg)
         } else if (segmentationMode == "all") {
@@ -158,25 +164,29 @@ segment.Plot <-
                                 thresh,
                                 colour.amplification,
                                 colour.loss,
-                                array_type)
+                                array_type,
+                                showPlot)
               multiSeg <- multiSampleSeg(mSetsAnno,
                              thresh,
                              array_type,
                              colour.amplification,
                              colour.loss,
-                             detail.regions)
+                             detail.regions,
+                             showPlot)
             } else{
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
                                  colour.loss,
-                                 array_type)
+                                 array_type,
+                                 showPlot)
               multiSeg <- multiSampleSeg2(mSetsAnno,
                              thresh,
                              array_type,
                              colour.amplification,
                              colour.loss,
-                             detail.regions)
+                             detail.regions,
+                             showPlot)
             }
           
             output <-
@@ -265,6 +275,12 @@ cumul.CNV <-
           segVal = TRUE
         }
         
+        if (output == "data") {
+        showPlot = "FALSE"
+        } else {
+          showPlot = "TRUE"
+        }
+        
         if(!is.null(controls)) {
           controlsRG <- read.RGSet(controls, array_type)
           if (array_type %in% c("EPICv2", "mouse")) {
@@ -291,7 +307,8 @@ cumul.CNV <-
             colour.loss,
             detail.regions,
             conumee.version,
-            controls)
+            controls,
+            showPlot)
         if (segVal == TRUE) {
           return(SegementationValues)
         } else {

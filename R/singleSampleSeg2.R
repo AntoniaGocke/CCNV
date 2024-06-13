@@ -5,9 +5,10 @@
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
 #' @param array_type Type of methylation array used
-#'
+#' @param showPlot boolean that determines, if the plots will be displayed
+#' 
 #' @return Nothing. Will print the figures to the default plotting terminal.
-singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type){
+singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type, showPlot){
   
   x <- conumee2.0::CNV.segment(conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, anno = mSetsAnno$anno_targets)))
   conSegData <- dplyr::bind_rows(x@seg$summary, .id = "column_label")
@@ -26,23 +27,31 @@ singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss
   overlayPlot <- overlayPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, array_type)
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data, colour.amplification, colour.loss, thresh, array_type)
   
-  #return all plots and data, even if summaryplot not functioning
-  summaryplot <- function(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData){
-    tryCatch(
-      expr = {
-        message(CNV.summaryplot(x, threshold = thresh))
-      },
-      error = function(e){
-        message('Summary plot could not be generated.')
-        print(e)
-      },
-      finally = {
-        suppressWarnings(print(overlayPlot))
-        suppressWarnings(print(singleFreqPlot))
-        return(segmentation_data)
-      }
-    )    
+  if (showPlot == "TRUE"){
+    #return all plots and data, even if summaryplot not functioning
+    summaryplot <- function(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData){
+      tryCatch(
+        expr = {
+          message(CNV.summaryplot(x, threshold = thresh))
+        },
+        error = function(e){
+          message('Summary plot could not be generated.')
+          print(e)
+        },
+        finally = {
+          suppressWarnings(print(overlayPlot))
+          suppressWarnings(print(singleFreqPlot))
+          return(segmentation_data)
+        }
+      )    
+    }
+    
+    summaryplot(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData)
   }
   
-  summaryplot(x, threshold = thresh, overlayPlot, singleFreqPlot, segmentationData)
+  else {
+    return(segmentation_data)
+  }
+  
+  
 }

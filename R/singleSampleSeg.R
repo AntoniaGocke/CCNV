@@ -4,9 +4,10 @@
 #' @param colour.amplification Colour for amplification
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
-#'
+#' @param showPlot boolean that determines, if the plots will be displayed
+#' 
 #' @return Nothing. Will print the figures to the default plotting terminal.
-singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type){
+singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type, showPlot){
   
   #load bin and segment each sample in conumee
   #load bin and segment each sample in conumee
@@ -54,9 +55,10 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss,
   
   singleFreqPlot <- singleFrequencyPlot(mSetsAnno, segmentation_data2, colour.amplification, colour.loss, thresh)
   
-  #draw plots
-  suppressWarnings(print(overlayPlot))
-  suppressWarnings(print(singleFreqPlot))
-  
+  if (showPlot == "TRUE"){
+    #draw plots
+    suppressWarnings(print(overlayPlot))
+    suppressWarnings(print(singleFreqPlot))  
+  }
   return(segmentation_data)
 }
