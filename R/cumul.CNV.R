@@ -1,7 +1,7 @@
 #'Determines the array type of the user input dataframe
 #'
-#'@param dataFiles Dataframe with a column labelled "ArrayType" containing the arraytype (450K/EPIC/EPIC2) for each sample.
-#'@return A string with either "450k" (only 450k samples), "EPIC" (only EPIC samples), "combined" (both 450K and EPIC samples) and EPIC2 (only EPIC2)
+#'@param dataFiles Dataframe with a column labelled "ArrayType" containing the arraytype (450k/EPIC/EPIC2) for each sample.
+#'@return A string with either "450k" (only 450k samples), "EPIC" (only EPIC samples), "combined" (both 450k and EPIC samples) and EPIC2 (only EPIC2)
 get.ArrayType <- function(dataFiles) {
     ArrayType <- NULL
     types = unique(dataFiles$ArrayType)
@@ -33,15 +33,15 @@ get.ConumeeVersion <- function(ArrayType) {
     return(v)
 }
 
-#' Reads the specified methylation arrays into an RGSet. Note that any combination of 450K and EPIC arrays will be coerced into an RGSet of 450K type.
+#' Reads the specified methylation arrays into an RGSet. Note that any combination of 450k and EPIC arrays will be coerced into an RGSet of 450k type.
 #' @param dataFiles Dataframe with a column batch name as requested by minfi for reading in experiments.
-#' @param ArrayTye A string (either "450K", "EPIC", "combined" or "EPIC2")
+#' @param ArrayTye A string (either "450k", "EPIC", "combined" or "EPIC2")
 #'
 #' @return A list of the RGSet of the target data, the control data and the annotation data
 read.RGSet <- function(dataFiles, ArrayType) {
     stopifnot(
-        "Only 450K, EPIC, EPICv2, mouse and combined are permitted as ArrayType at the moment" =
-            (ArrayType %in% c("450K", "EPIC", "combined", "EPICv2", "mouse"))
+        "Only 450k, EPIC, EPICv2, mouse and combined are permitted as ArrayType at the moment" =
+            (ArrayType %in% c("450k", "EPIC", "combined", "EPICv2", "mouse"))
     )
     types = unique(dataFiles$ArrayType)
     
@@ -57,11 +57,11 @@ read.RGSet <- function(dataFiles, ArrayType) {
             minfi::read.metharray.exp(targets = data_EPIC, force = TRUE)
         rgset_450k <-
             minfi::read.metharray.exp(targets = data_450k, force = TRUE)
-        # combine into array with 450K cpg sites
+        # combine into array with 450k cpg sites
         target_rgset <-
             minfi::combineArrays(rgset_EPIC, rgset_450k, outType = "IlluminaHumanMethylation450k")
     }
-    if (ArrayType == "450K") {
+    if (ArrayType == "450k") {
         rgset_450k <-
             minfi::read.metharray.exp(targets = dataFiles, force = TRUE)
         target_rgset <- rgset_450k
@@ -207,7 +207,7 @@ segment.Plot <-
 #' @param colour.loss Colour for loss
 #' @param detail.regions Either NULL or a vector of gene names.
 #' #conumee version new name
-#' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450K, EPIC and to 2 for Mouse and EPICv2
+#' @param conumee.version The version of conumee to use (either 1 or 2). 1 is incompatible with mouse or EPICv2 arrays. NULL will set the version heuristically to 1 for 450k, EPIC and to 2 for Mouse and EPICv2
 #' @param output determines the type of output. Can be either plot, data or all
 #' @param controls control samples as a dataframe with columns ArrayType and Basename or NULL. If NULL, publicly available can be used (except for mouse or EPICv2 or mouse data)
 #'
