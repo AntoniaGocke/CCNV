@@ -1,15 +1,15 @@
 #'Determines the array type of the user input dataframe
 #'
 #'@param dataFiles Dataframe with a column labelled "ArrayType" containing the arraytype (450K/EPIC/EPIC2) for each sample.
-#'@return A string with either "450K" (only 450K samples), "EPIC" (only EPIC samples), "combined" (both 450K and EPIC samples) and EPIC2 (only EPIC2)
+#'@return A string with either "450k" (only 450k samples), "EPIC" (only EPIC samples), "combined" (both 450K and EPIC samples) and EPIC2 (only EPIC2)
 get.ArrayType <- function(dataFiles) {
     ArrayType <- NULL
     types = unique(dataFiles$ArrayType)
-    if ((all(c("EPIC", "450K") %in% types)) &
+    if ((all(c("EPIC", "450k") %in% types)) &
         (length(types) == 2)) {
         ArrayType <- "combined"
-    } else if (("450K" %in% types) & (length(types) == 1)) {
-        ArrayType <- "450K"
+    } else if (("450k" %in% types) & (length(types) == 1)) {
+        ArrayType <- "450k"
     } else if (("EPIC" %in% types) & (length(types) == 1)) {
         ArrayType <- "EPIC"
     } else if (("EPICv2" %in% types) & (length(types) == 1)) {
