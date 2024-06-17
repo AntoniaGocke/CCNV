@@ -160,12 +160,14 @@ segment.Plot <-
           return(multiSeg)
         } else if (segmentationMode == "all") {
             if (conumee.version == 1) {
+              total_start <- Sys.time()
               singleSeg <- singleSampleSeg(mSetsAnno,
                                 thresh,
                                 colour.amplification,
                                 colour.loss,
                                 array_type,
                                 showPlot)
+              singleSeg_end <- Sys.time()
               multiSeg <- multiSampleSeg(mSetsAnno,
                              thresh,
                              array_type,
@@ -173,13 +175,16 @@ segment.Plot <-
                              colour.loss,
                              detail.regions,
                              showPlot)
+              multiSeg_end <- Sys.time()
             } else{
+              total_start <- Sys.time()
               singleSeg <- singleSampleSeg2(mSetsAnno,
                                  thresh,
                                  colour.amplification,
                                  colour.loss,
                                  array_type,
                                  showPlot)
+              singleSeg_end <- Sys.time()
               multiSeg <- multiSampleSeg2(mSetsAnno,
                              thresh,
                              array_type,
@@ -187,8 +192,12 @@ segment.Plot <-
                              colour.loss,
                              detail.regions,
                              showPlot)
+              multiSeg_end <- Sys.time()
             }
-          
+          execution_time_single <- as.numeric(as.POSIXct(singleSeg_end,origin = "1970-01-01")) - as.numeric(as.POSIXct(total_start,origin = "1970-01-01"))
+          execution_time_multi <- as.numeric(as.POSIXct(multiSeg_end,origin = "1970-01-01")) - as.numeric(as.POSIXct(singleSeg_end,origin = "1970-01-01"))
+          print(paste("Runtime single:", execution_time_single))
+          print(paste("Runtime multi:", execution_time_multi))
             output <-
               list(
                 "multiSeg" = multiSeg,
