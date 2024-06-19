@@ -14,16 +14,26 @@ singleSampleSeg<- function(mSetsAnno, thresh, colour.amplification, colour.loss,
   foreach(i = 1:ncol(mSetsAnno$target_mset_loaded@intensity)) %do%
     {
       if(i==1) {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        x <- conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
+        start <- Sys.time()
+        x <- conumee::CNV.segment(x)
+        end <- Sys.time()
+        execution_time_single <- as.numeric(as.POSIXct(start,origin = "1970-01-01")) - as.numeric(as.POSIXct(end,origin = "1970-01-01"))
         segmentation_data <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
       }
       else {
-        x <- conumee::CNV.segment(conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets)))
+        x <- conumee::CNV.bin(conumee::CNV.fit( query = mSetsAnno$target_mset_loaded[names(mSetsAnno$target_mset_loaded[i])], ref = mSetsAnno$control_mset_loaded, mSetsAnno$anno_targets))
+        start <- Sys.time()
+        x <- conumee::CNV.segment(x)
+        end <- Sys.time()
+        execution_time_singleSeg <- as.numeric(as.POSIXct(start,origin = "1970-01-01")) - as.numeric(as.POSIXct(end,origin = "1970-01-01"))
+        execution_time_single <- execution_time_single + execution_time_singleSeg
         target_segmentation <- as.data.frame(cbind(x@seg$summary$chrom, x@seg$summary$loc.start, x@seg$summary$loc.end, x@seg$summary$seg.mean, names(mSetsAnno$target_mset_loaded[i]), x@fit[["noise"]]))
         names(target_segmentation) <- names(segmentation_data)
         segmentation_data <- rbind(segmentation_data, target_segmentation)
       }
     }
+  print(paste("Runtime single:", execution_time_single))
   
   names(segmentation_data) <- c("chromosome", "start", "end","segmean", "sample", "noise")
   

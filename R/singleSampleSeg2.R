@@ -10,7 +10,13 @@
 #' @return Nothing. Will print the figures to the default plotting terminal.
 singleSampleSeg2<- function(mSetsAnno, thresh, colour.amplification, colour.loss, array_type, showPlot){
   
-  x <- conumee2.0::CNV.segment(conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, anno = mSetsAnno$anno_targets)))
+  x <- conumee2.0::CNV.bin(conumee2.0::CNV.fit(query = mSetsAnno$target_mset_loaded, ref = mSetsAnno$control_mset_loaded, anno = mSetsAnno$anno_targets))
+
+  start <- Sys.time()
+  x <- conumee2.0::CNV.segment(x)
+  end <- Sys.time()
+  execution_time_single <- as.numeric(as.POSIXct(start,origin = "1970-01-01")) - as.numeric(as.POSIXct(end,origin = "1970-01-01"))
+  print(paste("Runtime single:", execution_time_single))
   conSegData <- dplyr::bind_rows(x@seg$summary, .id = "column_label")
   segmentation_data <- as.data.frame(cbind(conSegData$chrom, conSegData$loc.start, conSegData$loc.end, conSegData$seg.mean, conSegData$ID))
   

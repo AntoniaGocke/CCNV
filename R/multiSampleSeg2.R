@@ -22,7 +22,12 @@ multiSampleSeg2 <- function(mSetsAnno, thresh, array_type, colour.amplification,
   target_ratios <- na.omit(as.data.frame(sapply(target_ratios, as.numeric)))
   
   #################### Segmentation #################################
+  start <- Sys.time()
   seg_mpcf <- FastMultiPCF(target_ratios, gamma = 5)
+  end <- Sys.time()
+  execution_time_multi <- as.numeric(as.POSIXct(start,origin = "1970-01-01")) - as.numeric(as.POSIXct(end,origin = "1970-01-01"))
+  print(paste("Runtime multi:", execution_time_multi))
+  
   require(dplyr)
   cumCNV <- CCNV(mSetsAnno, seg_mpcf, target_ratios, array_type, colour.amplification, colour.loss, detail.regions, array_type)
   cumFreq <- cumFreq(mSetsAnno, seg_mpcf, target_ratios, colour.amplification, colour.loss, thresh, array_type)
