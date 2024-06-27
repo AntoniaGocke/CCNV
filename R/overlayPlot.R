@@ -48,6 +48,7 @@ overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colo
       ggplot2::geom_rect(data = segmentation_data,  aes(xmin = start, xmax = end, ymax = segmean, ymin = 0 , fill = col))  +
       ggplot2::geom_vline(xintercept = genome_chr, colour = "grey") +
       ggplot2::ylim(-2.5, 2.5) + 
+      ggplot2::labs(y = "Intensity") +
       ggplot2::geom_hline( yintercept = 0, colour ="darkgrey") +
       ggplot2::scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
       ggplot2::theme_classic(base_size = 15) +
@@ -102,6 +103,7 @@ overlayPlot <- function(mSetsAnno, segmentation_data, colour.amplification, colo
       ggplot2::geom_rect(data = segmentation_data,  aes(xmin = start, xmax = end, ymax = segmean, ymin = 0 , fill = col))  +
       ggplot2::geom_vline(xintercept = genome_chr, colour = "grey") +
       ggplot2::ylim(-2.5, 2.5) + 
+      ggplot2::labs(y = "Intensity") +
       ggplot2::geom_vline(xintercept = genome_centr, linetype="dotted", colour = "grey") +
       ggplot2::geom_hline( yintercept = 0, colour ="darkgrey") +
       ggplot2::scale_x_continuous(name = "Chromosome", breaks = axis_break, labels = axis_label, limits = c(0, 2881033286)) +
