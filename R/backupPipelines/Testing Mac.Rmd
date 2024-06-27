@@ -34,6 +34,7 @@ PFB2_5 <- PFB2_5[-which(PFB2_5$Classifier_new_version == "EPN_PFB_1"),]
 
 cumul.CNV(PFB2_5, segmentationMode = "multi")
 
+pfb <- cumul.CNV(PFB2_5, segmentationMode = "multi", out = "data")
 #details <- read.csv("/Volumes/PhD/Ependymoma/Ependymoma_methylation_mainCohort/detail_conumee.csv")
 #detail_regions <- details$name
 

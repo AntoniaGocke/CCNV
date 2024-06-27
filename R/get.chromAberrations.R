@@ -11,10 +11,8 @@
 #' @export
 #'
 get.chromAberrations <- function(segmentation_data, thresh = 0.2, chrom = FALSE){
-  #multiseg chrom "start.pos" "end.pos" "n.probes" "
-  #single chromosome "start" "end" "segmean" "sample" "noise"
   require(dplyr)
-  if(c("chrom", "start.pos", "end.pos", "n.probes") %in% colnames(segmentation_data))
+  if(all(c("chrom", "start.pos", "end.pos", "n.probes") %in% names(segmentation_data)))
   {
     if (chrom == TRUE) {
       segmentation_data$n.bp <- segmentation_data$end.pos - segmentation_data$start.pos
@@ -48,7 +46,7 @@ get.chromAberrations <- function(segmentation_data, thresh = 0.2, chrom = FALSE)
       output <- as.data.frame(cbind(segmentation_data[,c(1:3)], segment_average_multi))
     }
   }
-  else if (c("chromosome", "start", "end", "segmean", "sample", "noise") %in% colnames(segmentation_data))
+  else if (all(c("chromosome", "start", "end", "segmean", "sample", "noise") %in% names(segmentation_data)))
     {
     segmentation_data$n.bp <- segmentation_data$end - segmentation_data$start
     single_data_filtered <- segmentation_data[,-which(names(segmentation_data) %in% c("start", "end", "noise"))]
